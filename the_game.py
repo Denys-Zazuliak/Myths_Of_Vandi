@@ -18,16 +18,24 @@ class Game:
         self.count = 1
         self.sprites=[]
 
-    def create_player(self):
+    def create_player(self,x=0,y=0):
         player_image = 'player.png'
         PLAYER_WIDTH = pygame.display.get_window_size()[0] // 200
         PLAYER_HEIGHT = pygame.display.get_window_size()[1] // 200
-        self.vandi=Player(player_image,self.sprites,PLAYER_WIDTH,PLAYER_HEIGHT)
-        self.sprites.append(self.vandi)
+        self.vandi=Player(player_image,self.sprites,PLAYER_WIDTH,PLAYER_HEIGHT, x, y)
+
+    def create_enemy(self,x=100,y=100):
+        enemy_image = 'enemy.png'
+        ENEMY_WIDTH = pygame.display.get_window_size()[0] // 200
+        ENEMY_HEIGHT = pygame.display.get_window_size()[1] // 200
+        enemy = Enemy(enemy_image, ENEMY_WIDTH, ENEMY_HEIGHT, x, y)
+        self.sprites.append(enemy)
 
     def main_screen(self):
         # game loop
         self.create_player()
+        self.create_enemy()
+        self.create_enemy(200,200)
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -42,6 +50,7 @@ class Game:
 
             self.screen.fill((135, 200, 235))
 
+            self.screen.blit(self.vandi.img, self.vandi.rect)
             for sprite in self.sprites:
                 self.screen.blit(sprite.img, sprite.rect)
 
@@ -53,7 +62,7 @@ class Game:
         pygame.quit()
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, image, all_sprites, width, height, x=0, y=0):
+    def __init__(self, image, all_sprites, width, height, x, y):
         self.img = pygame.image.load(image).convert_alpha()
         self.rect = pygame.Rect(x, y, width, height)
         self.sprites=all_sprites
@@ -61,14 +70,24 @@ class Player(pygame.sprite.Sprite):
 
     def move(self, keys):
         for sprite in self.sprites:
-            if keys[pygame.K_UP]:
+            if keys[pygame.K_w]:
                 sprite.rect.move_ip(0, -self.velocity)
-            if keys[pygame.K_DOWN]:
+            if keys[pygame.K_s]:
                 sprite.rect.move_ip(0, self.velocity)
-            if keys[pygame.K_LEFT]:
+            if keys[pygame.K_a]:
                 sprite.rect.move_ip(-self.velocity, 0)
-            if keys[pygame.K_RIGHT]:
+            if keys[pygame.K_d]:
                 sprite.rect.move_ip(self.velocity, 0)
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, image, width, height, x, y):
+        self.img = pygame.image.load(image).convert_alpha()
+        self.rect = pygame.Rect(x, y, width, height)
+        self.velocity = 3
+
+    def movement(self):
+        choices=[self.rect.move_ip(self.velocity,0), self.rect.move_ip(-self.velocity,0)]
+        choice=random.choice()
 
 if __name__ == '__main__':
     game = Game()
