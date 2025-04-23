@@ -53,6 +53,8 @@ class Game:
             self.screen.blit(self.vandi.img, self.vandi.rect)
             for sprite in self.sprites:
                 self.screen.blit(sprite.img, sprite.rect)
+                if self.count%FPS==0:
+                    sprite.movement()
 
             # updating display and game
             pygame.display.flip()
@@ -86,8 +88,10 @@ class Enemy(pygame.sprite.Sprite):
         self.velocity = 3
 
     def movement(self):
-        choices=[self.rect.move_ip(self.velocity,0), self.rect.move_ip(-self.velocity,0)]
-        choice=random.choice()
+        choices=[self.velocity, -self.velocity]
+        choice=random.choice(choices)
+        for i in range(random.randint(5,15)):
+            self.rect.move_ip(choice,0)
 
 if __name__ == '__main__':
     game = Game()
