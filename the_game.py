@@ -47,13 +47,14 @@ class Game:
             keys = pygame.key.get_pressed()
 
             self.vandi.move(keys)
+            self.vandi.jump(keys)
 
             self.screen.fill((135, 200, 235))
 
             self.screen.blit(self.vandi.img, self.vandi.rect)
             for sprite in self.sprites:
                 self.screen.blit(sprite.img, sprite.rect)
-                if self.count%FPS==0:
+                if self.count%(3*FPS)==0:
                     sprite.movement()
 
             # updating display and game
@@ -81,6 +82,15 @@ class Player(pygame.sprite.Sprite):
             if keys[pygame.K_d]:
                 sprite.rect.move_ip(self.velocity, 0)
 
+    def jump(self, key):
+        #either make a quadratic formula (upside down parabola) or just keep this
+        for sprite in self.sprites:
+            if key[pygame.K_SPACE]:
+                for velocity_up in range(0, 101):
+                    sprite.rect.move_ip(-velocity_up,0)
+                for velocity_down in range(100, 0, -1):
+                    sprite.rect.move_ip(velocity_down,0)
+
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, image, width, height, x, y):
         self.img = pygame.image.load(image).convert_alpha()
@@ -90,8 +100,9 @@ class Enemy(pygame.sprite.Sprite):
     def movement(self):
         choices=[self.velocity, -self.velocity]
         choice=random.choice(choices)
-        for i in range(random.randint(5,15)):
-            self.rect.move_ip(choice,0)
+        times=random.randint(5,9)
+        for i in range(times):
+            self.rect.move_ip(times*choice,0)
 
 if __name__ == '__main__':
     game = Game()
