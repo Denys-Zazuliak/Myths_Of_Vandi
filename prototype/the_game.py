@@ -1,7 +1,7 @@
 import math
 import random
-
 import pygame
+import time
 
 SCREEN_WIDTH = 0
 SCREEN_HEIGHT = 0
@@ -55,7 +55,9 @@ class Game:
             for sprite in self.sprites:
                 self.screen.blit(sprite.img, sprite.rect)
                 if self.count%(3*FPS)==0:
-                    sprite.movement()
+                    times = random.randint(5, 9)
+                    for i in range(times):
+                        sprite.movement()
 
             # updating display and game
             pygame.display.flip()
@@ -86,10 +88,7 @@ class Player(pygame.sprite.Sprite):
         #either make a quadratic formula (upside down parabola) or just keep this
         for sprite in self.sprites:
             if key[pygame.K_SPACE]:
-                for velocity_up in range(0, 101):
-                    sprite.rect.move_ip(-velocity_up,0)
-                for velocity_down in range(100, 0, -1):
-                    sprite.rect.move_ip(velocity_down,0)
+                sprite.rect.move_ip(0, self.velocity)
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, image, width, height, x, y):
@@ -100,9 +99,7 @@ class Enemy(pygame.sprite.Sprite):
     def movement(self):
         choices=[self.velocity, -self.velocity]
         choice=random.choice(choices)
-        times=random.randint(5,9)
-        for i in range(times):
-            self.rect.move_ip(times*choice,0)
+        self.rect.move_ip(choice,0)
 
 if __name__ == '__main__':
     game = Game()
