@@ -57,6 +57,13 @@ class Game:
                 if self.count%(3*FPS)==0:
                     sprite.movement()
 
+            #works as intended but not ideally (this was just a test) i need to experiment with this
+            # for sprite in self.sprites:
+            #     if sprite.get_on_ground():
+            #         sprite.gravity+=1
+            #         sprite.rect.move_ip(0, sprite.gravity)
+
+
             # updating display and game
             pygame.display.flip()
             self.clock.tick(FPS)
@@ -70,6 +77,8 @@ class Player(pygame.sprite.Sprite):
         self.rect = pygame.Rect(x, y, width, height)
         self.sprites=all_sprites
         self.velocity = 5
+        self.on_ground=True
+        self.gravity=1
 
     def move(self, keys):
         for sprite in self.sprites:
@@ -83,19 +92,21 @@ class Player(pygame.sprite.Sprite):
                 sprite.rect.move_ip(self.velocity, 0)
 
     def jump(self, key):
-        #either make a quadratic formula (upside down parabola) or just keep this
-        for sprite in self.sprites:
-            if key[pygame.K_SPACE]:
-                for velocity_up in range(0, 101):
-                    sprite.rect.move_ip(-velocity_up,0)
-                for velocity_down in range(100, 0, -1):
-                    sprite.rect.move_ip(velocity_down,0)
+        if not self.on_ground:
+            for sprite in self.sprites:
+                pass
+
+    def get_on_ground(self):
+        return self.on_ground
+
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, image, width, height, x, y):
         self.img = pygame.image.load(image).convert_alpha()
         self.rect = pygame.Rect(x, y, width, height)
         self.velocity = 3
+        self.on_ground=True
+        self.gravity = 1
 
     def movement(self):
         choices=[self.velocity, -self.velocity]
@@ -103,6 +114,9 @@ class Enemy(pygame.sprite.Sprite):
         times=random.randint(5,9)
         for i in range(times):
             self.rect.move_ip(times*choice,0)
+
+    def get_on_ground(self):
+        return self.on_ground
 
 if __name__ == '__main__':
     game = Game()
