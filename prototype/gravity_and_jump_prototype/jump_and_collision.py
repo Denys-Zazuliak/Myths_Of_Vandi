@@ -19,6 +19,7 @@ class Game:
         self.running = True
         self.count = 1
         self.sprites=[]
+        self.gravity=0.5
 
     def create_player(self):
         PLAYER_WIDTH = pygame.display.get_window_size()[0] // 200
@@ -44,11 +45,14 @@ class Game:
 
             keys=self.input_handling()
 
+            if keys[pygame.K_SPACE] and self.player.on_ground:
+                self.player.jump()
+
+            self.player.update()
+
+            self.player.collisions()
+
             self.draw_background()
-
-            self.player.jump(keys)
-
-            self.update_gravity()
 
             self.endframe()
 
@@ -62,11 +66,6 @@ class Game:
     def draw_background(self):
         self.screen.fill((135, 200, 235))
         self.screen.blit(self.player.surf, self.player.rect)
-
-    def update_gravity(self):
-        if self.player.get_on_ground() and self.player.gravity < 11:
-            self.player.gravity += 1
-        self.player.rect.move_ip(0, self.player.gravity)
 
     def endframe(self):
         # updating display and game
@@ -83,21 +82,32 @@ class Player(pygame.sprite.Sprite):
         self.surf.fill((255, 255, 255))
         self.rect = pygame.Rect(500, 500, 64, 64)
         self.on_ground = True
-        self.gravity=0
-        self.velocity=1
+        self.velocity=[0, 0]
 
     #need to delete the last (self.on_ground=True) from here and add it to the collisions function when i make it
-    def jump(self, key):
-        if key[pygame.K_SPACE]:
-            self.gravity=0
-            self.on_ground = False
-            for i in range(10,0,-1):
-                self.rect.move_ip(0, -i)
-                game.draw_background()
+    def jump(self):
+        self.on_ground = False
+        self.velocity[1] = -10
         self.on_ground = True
 
+    def update(self):
+        self.velocity[1] += game.gravity
+        self.rect.move_ip(self.velocity[0], self.velocity[1])
+
     def collisions(self):
-        pass
+        if self.rect.left < 0:
+            del self
+            return 1
+        if self.rect.right > SCREEN_WIDTH:
+            del self
+            return 1
+        if self.rect.top <= 0:
+            del self
+            return 1
+        if self.rect.bottom >= SCREEN_HEIGHT:
+            del self
+            return 1
+        return 0
 
     def get_on_ground(self):
         return self.on_ground
