@@ -1,13 +1,10 @@
-#can't debug the jump function properly for some reason
+#can't debug properly
 
 
-import math
-import random
 import pygame
-from pygame import K_SPACE
 
-SCREEN_WIDTH = 0
-SCREEN_HEIGHT = 0
+SCREEN_WIDTH = 1980
+SCREEN_HEIGHT = 1120
 FPS = 60
 
 class Game:
@@ -18,7 +15,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.running = True
         self.count = 1
-        self.sprites=[]
+        self.blocks=[]
         self.gravity=0.5
 
     def create_player(self):
@@ -27,6 +24,9 @@ class Game:
         self.image = pygame.Surface([PLAYER_WIDTH, PLAYER_HEIGHT])
         self.player=Player()
 
+    def create_block(self, x, y, width, height, colour=(0,0,0)):
+        block=Block(x, y, width, height, colour)
+        self.blocks.append(block)
 
     def pygame_init(self):
         pygame.init()
@@ -35,6 +35,7 @@ class Game:
     def main_screen(self):
         # game loop
         self.create_player()
+        self.create_block(500, 1000, 100, 50)
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -48,11 +49,13 @@ class Game:
             if keys[pygame.K_SPACE] and self.player.on_ground:
                 self.player.jump()
 
+            self.draw()
+
             self.player.update()
 
-            self.player.collisions()
+            self.player.wall_collisions()
 
-            self.draw_background()
+            self.player.collision(self.blocks)
 
             self.endframe()
 
@@ -63,18 +66,19 @@ class Game:
 
         return keys
 
-    def draw_background(self):
+    def draw(self):
         self.screen.fill((135, 200, 235))
         self.screen.blit(self.player.surf, self.player.rect)
+        for block in self.blocks:
+            self.screen.blit(block.surf, block.rect)
 
     def endframe(self):
-        # updating display and game
+        # updating  game
         pygame.display.flip()
         self.clock.tick(FPS)
         self.count += 1
 
 class Player(pygame.sprite.Sprite):
-
     def __init__(self):
         super(Player, self).__init__()
 
@@ -84,33 +88,48 @@ class Player(pygame.sprite.Sprite):
         self.on_ground = True
         self.velocity=[0, 0]
 
-    #need to delete the last (self.on_ground=True) from here and add it to the collisions function when i make it
     def jump(self):
         self.on_ground = False
         self.velocity[1] = -10
-        self.on_ground = True
 
     def update(self):
         self.velocity[1] += game.gravity
         self.rect.move_ip(self.velocity[0], self.velocity[1])
 
-    def collisions(self):
+    def wall_collisions(self):
         if self.rect.left < 0:
-            del self
-            return 1
+            self.rect.left = 0
         if self.rect.right > SCREEN_WIDTH:
-            del self
-            return 1
+            self.rect.right = SCREEN_WIDTH
         if self.rect.top <= 0:
-            del self
-            return 1
+            self.rect.top = 0
         if self.rect.bottom >= SCREEN_HEIGHT:
-            del self
-            return 1
-        return 0
+            self.rect.bottom = SCREEN_HEIGHT
+            self.on_ground = True
+
+    def collision(self, blocks):
+        for block in blocks:
+            if self.rect.colliderect(block):
+                if self.rect.left < block.rect.right:
+                    self.rect.left = block.rect.right
+                elif self.rect.right > block.rect.left:
+                    self.rect.right = block.rect.left
+                elif self.rect.top <= block.rect.bottom:
+                    self.rect.top = block.rect.bottom
+                elif self.rect.bottom >= block.rect.top:
+                    self.rect.bottom = block.rect.top
+                    self.on_ground = True
+
 
     def get_on_ground(self):
         return self.on_ground
+
+class Block:
+    def __init__(self, x, y, width, height, colour):
+        self.surf = pygame.Surface((width, height))
+        self.surf.fill(colour)
+        self.rect = pygame.Rect(x, y, width, height)
+
 
 if __name__ == '__main__':
     game = Game()
