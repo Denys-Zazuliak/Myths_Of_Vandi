@@ -3,8 +3,8 @@
 
 import pygame
 
-SCREEN_WIDTH = 1980
-SCREEN_HEIGHT = 1120
+SCREEN_WIDTH = 1000
+SCREEN_HEIGHT = 1000
 FPS = 60
 
 class Game:
@@ -68,9 +68,9 @@ class Game:
 
     def draw(self):
         self.screen.fill((135, 200, 235))
-        self.screen.blit(self.player.surf, self.player.rect)
+        pygame.draw.rect(self.screen, (255, 255, 255), self.player.rect)
         for block in self.blocks:
-            self.screen.blit(block.surf, block.rect)
+            pygame.draw.rect(self.screen, block.colour, block.rect)
 
     def endframe(self):
         # updating  game
@@ -81,9 +81,6 @@ class Game:
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super(Player, self).__init__()
-
-        self.surf = pygame.Surface((75, 25))
-        self.surf.fill((255, 255, 255))
         self.rect = pygame.Rect(500, 500, 64, 64)
         self.on_ground = True
         self.velocity=[0, 0]
@@ -93,7 +90,8 @@ class Player(pygame.sprite.Sprite):
         self.velocity[1] = -10
 
     def update(self):
-        self.velocity[1] += game.gravity
+        if not self.on_ground:
+            self.velocity[1] += game.gravity
         self.rect.move_ip(self.velocity[0], self.velocity[1])
 
     def wall_collisions(self):
@@ -110,15 +108,17 @@ class Player(pygame.sprite.Sprite):
     def collision(self, blocks):
         for block in blocks:
             if self.rect.colliderect(block):
-                if self.rect.left < block.rect.right:
-                    self.rect.left = block.rect.right
-                elif self.rect.right > block.rect.left:
-                    self.rect.right = block.rect.left
-                elif self.rect.top <= block.rect.bottom:
-                    self.rect.top = block.rect.bottom
-                elif self.rect.bottom >= block.rect.top:
-                    self.rect.bottom = block.rect.top
-                    self.on_ground = True
+                # if self.rect.left < block.rect.right and self.rect.left > block.rect.left:
+                #     self.rect.left = block.rect.right
+                # elif self.rect.right > block.rect.left:
+                #     self.rect.right = block.rect.left
+                # elif self.rect.top <= block.rect.bottom:
+                #     self.rect.top = block.rect.bottom
+                # elif self.rect.bottom >= block.rect.top:
+                #     self.rect.bottom = block.rect.top
+                self.rect.bottom = block.rect.top
+                self.on_ground = True
+                self.velocity[1] = 0
 
 
     def get_on_ground(self):
@@ -126,9 +126,9 @@ class Player(pygame.sprite.Sprite):
 
 class Block:
     def __init__(self, x, y, width, height, colour):
-        self.surf = pygame.Surface((width, height))
-        self.surf.fill(colour)
         self.rect = pygame.Rect(x, y, width, height)
+        self.colour = colour
+
 
 
 if __name__ == '__main__':
