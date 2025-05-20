@@ -1,6 +1,3 @@
-#can't debug properly
-
-
 import pygame
 
 SCREEN_WIDTH = 1000
