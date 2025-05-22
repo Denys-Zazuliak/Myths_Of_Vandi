@@ -32,7 +32,8 @@ class Game:
         self.sprites.append(enemy)
 
     def create_block(self, x, y, width, height, colour=(0,0,0)):
-        block=Block(x, y, width, height, colour)
+        block_image = f'../assets/block.jpg'
+        block=Block(x, y, width, height, colour, block_image)
         self.blocks.append(block)
 
     def pygame_init(self):
@@ -45,11 +46,9 @@ class Game:
         self.create_enemy()
         self.create_enemy(200,200)
         self.create_block(500, 1000, 100, 50)
+
         while self.running:
             keys=self.input_handling()
-
-            if keys[pygame.K_SPACE] and self.vandi.on_ground:
-                self.vandi.jump()
 
             self.draw()
 
@@ -58,6 +57,8 @@ class Game:
             self.update_movement(keys)
             self.vandi.wall_collisions()
             self.vandi.collision(self.blocks)
+            if keys[pygame.K_SPACE] and self.vandi.on_ground:
+                self.vandi.jump()
 
             for sprite in self.sprites:
                 sprite.wall_collisions()
@@ -90,11 +91,12 @@ class Game:
 
     def draw(self):
         self.screen.fill((135, 200, 235))
+        # self.screen.blit(self.vandi.img, self.vandi.rect)
         pygame.draw.rect(self.screen, (255, 255, 255, 0), self.vandi.rect)
         # for sprite in self.sprites:
         #     pygame.draw.rect(self.screen, (0,0,0,0), sprite.rect)
         for block in self.blocks:
-            pygame.draw.rect(self.screen, block.colour, block.rect)
+            self.screen.blit(block.img, block.rect)
 
     def update_gravity(self):
         for sprite in self.sprites:
@@ -111,7 +113,7 @@ class Game:
 class Player(pygame.sprite.Sprite):
     def __init__(self, image, all_sprites, width, height, x=SCREEN_WIDTH//200, y=SCREEN_HEIGHT//200):
         self.img = pygame.image.load(image).convert_alpha()
-        self.rect = pygame.Rect(x, y, width, height)
+        self.rect = self.img.get_rect(center=(SCREEN_WIDTH//200, SCREEN_HEIGHT//200))
         self.sprites=all_sprites
         self.on_ground = True
         self.velocity = [5, 0]
@@ -155,6 +157,9 @@ class Player(pygame.sprite.Sprite):
                 self.velocity[1] = 0
 
 
+
+#add gravity to enemy
+#make this pygame.sprite.Group and change movement and rect
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, image, width, height, x, y):
         self.img = pygame.image.load(image).convert_alpha()
@@ -185,9 +190,12 @@ class Enemy(pygame.sprite.Sprite):
                 self.rect.bottom = block.rect.top
                 self.on_ground = True
                 self.velocity[1] = 0
-class Block:
-    def __init__(self, x, y, width, height, colour):
-        self.rect = pygame.Rect(x, y, width, height)
+
+class Block(pygame.sprite.Sprite):
+    def __init__(self, x, y, width, height, colour, image):
+        self.img = pygame.image.load(image).convert_alpha()
+        self.rect=self.img.get_rect(center=(x, y))
+        # self.rect = pygame.Rect(x, y, width, height)
         self.colour = colour
 
 if __name__ == '__main__':
