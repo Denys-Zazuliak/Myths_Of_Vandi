@@ -58,8 +58,6 @@ class Game:
             self.vandi.wall_collisions()
             self.vandi.collision(self.blocks)
             self.vandi.velocity[0] = 5
-            if keys[pygame.K_SPACE] and self.vandi.on_ground:
-                self.vandi.jump()
 
             for sprite in self.sprites:
                 sprite.wall_collisions()
@@ -79,6 +77,9 @@ class Game:
 
         keys = pygame.key.get_pressed()
 
+        if keys[pygame.K_SPACE] and self.vandi.on_ground:
+            self.vandi.jump()
+
         return keys
 
     def update_movement(self,keys):
@@ -93,9 +94,7 @@ class Game:
     def draw(self):
         self.screen.fill((135, 200, 235))
         self.screen.blit(self.vandi.img, self.vandi.rect)
-        # pygame.draw.rect(self.screen, (255, 255, 255, 0), self.vandi.rect)
-        # for sprite in self.sprites:
-        #     pygame.draw.rect(self.screen, (0,0,0,0), sprite.rect)
+
         for block in self.blocks:
             self.screen.blit(block.img, block.rect)
 
@@ -154,11 +153,9 @@ class Player(pygame.sprite.Sprite):
 
     def collision(self, blocks):
         for block in blocks:
-            # if self.rect.left < block.rect.right and self.rect.right > block.rect.right and not(self.rect.top < block.rect.top and self.rect.bottom >= block.rect.bottom:
             if self.rect.left < block.rect.right and self.rect.right > block.rect.right and self.on_ground:
                 # self.rect.left=block.rect.right
                 self.velocity[0] = 0
-            # elif self.rect.right > block.rect.left and self.rect.left < block.rect.left and self.rect.top <= block.rect.top and self.rect.bottom >= block.rect.bottom:
             elif self.rect.right > block.rect.left and self.rect.left < block.rect.left and self.on_ground:
                 # self.rect.right=block.rect.left
                 self.velocity[0] = 0
@@ -204,7 +201,6 @@ class Block(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height, colour, image):
         self.img = pygame.image.load(image).convert_alpha()
         self.rect=self.img.get_rect(center=(x, y))
-        # self.rect = pygame.Rect(x, y, width, height)
         self.colour = colour
 
 if __name__ == '__main__':
