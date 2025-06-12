@@ -2,7 +2,7 @@ import random
 import pygame
 
 SCREEN_WIDTH = 1600
-SCREEN_HEIGHT = 800
+SCREEN_HEIGHT = 900
 FPS = 60
 
 class Game:
@@ -18,7 +18,7 @@ class Game:
         self.blocks = []
         self.gravity = 0.5
 
-    def create_player(self,x=0,y=0):
+    def create_player(self,x,y):
         player_image = f'../assets/player.png'
         PLAYER_WIDTH = pygame.display.get_window_size()[0] // 200
         PLAYER_HEIGHT = pygame.display.get_window_size()[1] // 200
@@ -42,7 +42,7 @@ class Game:
 
     def main_screen(self):
         # game loop
-        self.create_player(SCREEN_WIDTH//200, SCREEN_HEIGHT//200)
+        self.create_player(SCREEN_WIDTH//2, SCREEN_HEIGHT//2)
         self.create_enemy()
         self.create_enemy(200,200)
         self.create_block(500, 1000, 100, 50)
@@ -57,6 +57,7 @@ class Game:
             self.update_movement(keys)
             self.vandi.wall_collisions()
             self.vandi.collision(self.blocks)
+            self.vandi.velocity[0] = 5
             if keys[pygame.K_SPACE] and self.vandi.on_ground:
                 self.vandi.jump()
 
@@ -83,7 +84,7 @@ class Game:
     def update_movement(self,keys):
         self.vandi.move(keys)
 
-        self.screen.blit(self.vandi.img, self.vandi.rect)
+        # self.screen.blit(self.vandi.img, self.vandi.rect)
         for sprite in self.sprites:
             self.screen.blit(sprite.img, sprite.rect)
             if self.count % (3 * FPS) == 0:
@@ -91,8 +92,8 @@ class Game:
 
     def draw(self):
         self.screen.fill((135, 200, 235))
-        # self.screen.blit(self.vandi.img, self.vandi.rect)
-        pygame.draw.rect(self.screen, (255, 255, 255, 0), self.vandi.rect)
+        self.screen.blit(self.vandi.img, self.vandi.rect)
+        # pygame.draw.rect(self.screen, (255, 255, 255, 0), self.vandi.rect)
         # for sprite in self.sprites:
         #     pygame.draw.rect(self.screen, (0,0,0,0), sprite.rect)
         for block in self.blocks:
@@ -111,23 +112,25 @@ class Game:
         self.count += 1
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, image, all_sprites, width, height, x=SCREEN_WIDTH//200, y=SCREEN_HEIGHT//200):
+    def __init__(self, image, all_sprites, width, height, x, y):
         self.img = pygame.image.load(image).convert_alpha()
-        self.rect = self.img.get_rect(center=(SCREEN_WIDTH//200, SCREEN_HEIGHT//200))
+        self.rect = self.img.get_rect(center=(x, y))
         self.sprites=all_sprites
-        self.on_ground = True
+        self.on_ground = False
         self.velocity = [5, 0]
 
     def move(self, keys):
         for sprite in self.sprites:
-            # if keys[pygame.K_w]:
-            #     sprite.rect.move_ip(0, self.velocity[1])
-            # if keys[pygame.K_s]:
-            #     sprite.rect.move_ip(0, -self.velocity[1])
             if keys[pygame.K_a]:
                 sprite.rect.move_ip(-self.velocity[0], 0)
+                self.rect.move_ip(-self.velocity[0], 0)
             if keys[pygame.K_d]:
                 sprite.rect.move_ip(self.velocity[0], 0)
+                self.rect.move_ip(self.velocity[0], 0)
+        # if keys[pygame.K_w]:
+        #     self.rect.move_ip(0, self.velocity[1])
+        # if keys[pygame.K_s]:
+        #     self.rect.move_ip(0, -self.velocity[1])
 
     def update(self):
         if not self.on_ground:
@@ -151,12 +154,18 @@ class Player(pygame.sprite.Sprite):
 
     def collision(self, blocks):
         for block in blocks:
-            if self.rect.colliderect(block):
-                self.rect.bottom = block.rect.top
-                self.on_ground = True
-                self.velocity[1] = 0
-
-
+            # if self.rect.left < block.rect.right and self.rect.right > block.rect.right and not(self.rect.top < block.rect.top and self.rect.bottom >= block.rect.bottom:
+            if self.rect.left < block.rect.right and self.rect.right > block.rect.right and self.on_ground:
+                # self.rect.left=block.rect.right
+                self.velocity[0] = 0
+            # elif self.rect.right > block.rect.left and self.rect.left < block.rect.left and self.rect.top <= block.rect.top and self.rect.bottom >= block.rect.bottom:
+            elif self.rect.right > block.rect.left and self.rect.left < block.rect.left and self.on_ground:
+                # self.rect.right=block.rect.left
+                self.velocity[0] = 0
+            # elif self.rect.colliderect(block):
+            #     self.rect.bottom = block.rect.top
+            #     self.on_ground = True
+            #     self.velocity[1] = 0
 
 #add gravity to enemy
 #make this pygame.sprite.Group and change movement and rect
