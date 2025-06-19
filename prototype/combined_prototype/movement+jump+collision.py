@@ -153,16 +153,17 @@ class Player(pygame.sprite.Sprite):
 
     def collision(self, blocks):
         for block in blocks:
-            if self.rect.left < block.rect.right and self.rect.right > block.rect.right and self.on_ground:
-                # self.rect.left=block.rect.right
-                self.velocity[0] = 0
-            elif self.rect.right > block.rect.left and self.rect.left < block.rect.left and self.on_ground:
-                # self.rect.right=block.rect.left
-                self.velocity[0] = 0
-            # elif self.rect.colliderect(block):
-            #     self.rect.bottom = block.rect.top
-            #     self.on_ground = True
-            #     self.velocity[1] = 0
+            if self.rect.colliderect(block):
+                if self.rect.left < block.rect.right and self.rect.right > block.rect.right and self.on_ground:
+                    self.rect.left=block.rect.right
+                elif self.rect.right > block.rect.left and self.rect.left < block.rect.left and self.on_ground:
+                    self.rect.right=block.rect.left
+                # elif self.rect.bottom < block.rect.top and self.rect.top > block.rect.bottom and self.on_ground:
+                elif self.rect.colliderect(block):
+                    self.rect.bottom = block.rect.top
+                    self.on_ground = True
+
+        # i need to set on_ground to False when the player is not on the block but how do i know when it's not on the block
 
 #add gravity to enemy
 #make this pygame.sprite.Group and change movement and rect
