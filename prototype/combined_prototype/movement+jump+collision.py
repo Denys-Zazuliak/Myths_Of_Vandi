@@ -162,8 +162,8 @@ class Player(pygame.sprite.Sprite):
             if self.rect.colliderect(block) and not self.on_top:
                 if self.rect.left < block.rect.right and self.rect.right > block.rect.right and self.on_ground:
                     self.rect.left=block.rect.right
-                # elif self.rect.right > block.rect.left and self.rect.left < block.rect.left and self.on_ground:
-                #     self.rect.right=block.rect.left
+                elif self.rect.right > block.rect.left and self.rect.left < block.rect.left and self.on_ground:
+                    self.rect.right=block.rect.left
 
             elif self.on_top:
                 self.on_ground = True
