@@ -116,6 +116,7 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.img.get_rect(center=(x, y))
         self.sprites=all_sprites
         self.on_ground = False
+        self.on_top = False
         self.velocity = [5, 0]
 
     def move(self, keys):
@@ -153,15 +154,21 @@ class Player(pygame.sprite.Sprite):
 
     def collision(self, blocks):
         for block in blocks:
-            if self.rect.colliderect(block):
+            if self.rect.right < block.rect.right and self.rect.left > block.rect.left and not self.rect.bottom > block.rect.top:
+                self.on_top = True
+            else:
+                self.on_top = False
+
+            if self.rect.colliderect(block) and not self.on_top:
                 if self.rect.left < block.rect.right and self.rect.right > block.rect.right and self.on_ground:
                     self.rect.left=block.rect.right
-                elif self.rect.right > block.rect.left and self.rect.left < block.rect.left and self.on_ground:
-                    self.rect.right=block.rect.left
-                # elif self.rect.bottom < block.rect.top and self.rect.top > block.rect.bottom and self.on_ground:
-                elif self.rect.colliderect(block):
-                    self.rect.bottom = block.rect.top
-                    self.on_ground = True
+                # elif self.rect.right > block.rect.left and self.rect.left < block.rect.left and self.on_ground:
+                #     self.rect.right=block.rect.left
+
+            elif self.on_top:
+                self.on_ground = True
+                self.rect.bottom = block.rect.top
+
 
         # i need to set on_ground to False when the player is not on the block but how do i know when it's not on the block
 
