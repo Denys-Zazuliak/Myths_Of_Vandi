@@ -15,21 +15,32 @@ class Game:
         self.font = pygame.font.SysFont("Arial", 20)
         self.running = True
         self.count = 1
-        self.sprites=[]
+        self.gravity = 0.5
 
     def setting_up(self):
         pygame.init()
         pygame.display.set_caption('Myths Of Vandi')
 
+    def create_player(self,x,y):
+        player_image = f'assets/vandi/player.png'
+        PLAYER_WIDTH = pygame.display.get_window_size()[0] // 200
+        PLAYER_HEIGHT = pygame.display.get_window_size()[1] // 200
+        self.vandi=Player(player_image,PLAYER_WIDTH,PLAYER_HEIGHT, x, y)
+
     def main_screen(self):
         # game loop
-        print(SCREEN_WIDTH / TILE_SIZE)
-        print(SCREEN_HEIGHT / TILE_SIZE)
+
+        self.create_player(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
         while self.running:
+            self.clock.tick(FPS)
 
             keys=self.input_handling()
 
             self.draw()
+
+            self.vandi.update()
+            self.update_movement(keys)
+            self.vandi.wall_collisions()
 
             self.endframe()
 
@@ -45,12 +56,21 @@ class Game:
 
         keys = pygame.key.get_pressed()
 
+        if keys[pygame.K_SPACE] and self.vandi.on_ground:
+            self.vandi.jump()
+
         return keys
+
+    def update_movement(self,keys):
+        self.vandi.move(keys)
 
     def draw(self):
         self.screen.fill((50, 50, 50))
         self.draw_grid()
+
         self.level1()
+
+        self.screen.blit(self.vandi.img, self.vandi.rect)
 
     def draw_grid(self):
         for line in range(0, 80):
@@ -93,7 +113,7 @@ class World():
         self.tile_list=[]
         self.data = data
 
-        self.block=pygame.image.load(f'assets/block.jpg')
+        self.block=pygame.image.load(f'assets/blocks/block.jpg')
 
         self.tile_count=0
         self.row_count=0
@@ -121,7 +141,43 @@ class World():
 
         return self.tile_list
 
+class Player(pygame.sprite.Sprite):
+    def __init__(self, image, width, height, x, y):
+        self.images_right=[]
+        self.index=0
+        self.counter=0
+        for num in range(1,5)
+        self.img = pygame.image.load(image).convert_alpha()
+        self.rect = self.img.get_rect(center=(x, y))
+        self.on_ground = False
+        self.on_top = False
+        self.velocity = [5, 0]
 
+    def move(self, keys):
+        if keys[pygame.K_a]:
+            self.rect.move_ip(-self.velocity[0], 0)
+        if keys[pygame.K_d]:
+            self.rect.move_ip(self.velocity[0], 0)
+
+    def update(self):
+        if not self.on_ground:
+            self.velocity[1] += game.gravity
+        self.rect.move_ip(0, self.velocity[1])
+
+    def jump(self):
+        self.on_ground = False
+        self.velocity[1] = -10
+
+    def wall_collisions(self):
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.right > SCREEN_WIDTH:
+            self.rect.right = SCREEN_WIDTH
+        if self.rect.top <= 0:
+            self.rect.top = 0
+        if self.rect.bottom >= SCREEN_HEIGHT:
+            self.rect.bottom = SCREEN_HEIGHT
+            self.on_ground = True
 
 if __name__ == '__main__':
     game = Game()
