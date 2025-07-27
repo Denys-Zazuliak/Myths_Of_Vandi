@@ -15,17 +15,16 @@ class Game:
         self.font = pygame.font.SysFont("Arial", 20)
         self.running = True
         self.count = 1
-        self.gravity = 0.5
+        self.gravity = 0.7
 
     def setting_up(self):
         pygame.init()
         pygame.display.set_caption('Myths Of Vandi')
 
     def create_player(self,x,y):
-        player_image = f'assets/vandi/player.png'
         PLAYER_WIDTH = pygame.display.get_window_size()[0] // 200
         PLAYER_HEIGHT = pygame.display.get_window_size()[1] // 200
-        self.vandi=Player(player_image,PLAYER_WIDTH,PLAYER_HEIGHT, x, y)
+        self.vandi=Player(PLAYER_WIDTH,PLAYER_HEIGHT, x, y)
 
     def main_screen(self):
         # game loop
@@ -38,9 +37,10 @@ class Game:
 
             self.draw()
 
-            self.vandi.update()
-            self.update_movement(keys)
             self.vandi.wall_collisions()
+            self.vandi.collision(self.world)
+            self.update_movement(keys)
+            self.vandi.update()
 
             self.endframe()
 
@@ -63,6 +63,7 @@ class Game:
 
     def update_movement(self,keys):
         self.vandi.move(keys)
+
 
     def draw(self):
         self.screen.fill((50, 50, 50))
@@ -87,17 +88,17 @@ class Game:
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
-            ['B1', 'A9', 'B1', 'A8', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
-            ['B1', 'A18', 'B1'],
-            ['B1', 'A18', 'B1'],
+            ['A19', 'B1'],
+            ['A19', 'B1'],
+            ['A19', 'B1'],
             ['A3', 'B17'],
         ]
-        world=World(layout)
-        level1=world.load_level()
+        self.world=World(layout)
+        level1=self.world.load_level()
 
         for tile in level1:
             self.screen.blit(tile[0], tile[1])
@@ -142,22 +143,57 @@ class World():
         return self.tile_list
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, image, width, height, x, y):
+    def __init__(self, width, height, x, y):
         self.images_right=[]
+        self.images_left = []
         self.index=0
         self.counter=0
-        for num in range(1,5)
-        self.img = pygame.image.load(image).convert_alpha()
-        self.rect = self.img.get_rect(center=(x, y))
+        for i in range(1,3):
+            img = pygame.image.load(f'assets/vandi/idle/vandi{i}.png').convert_alpha()
+            img=pygame.transform.scale(img,(96,192))#(img.get_width()*2.5, img.get_height()*2.5))
+            self.images_right.append(img)
+            img_left=pygame.transform.flip(img,True,False)
+            self.images_left.append(img_left)
+
+        self.img=self.images_right[self.index]
+        self.width=self.img.get_width()
+        self.height=self.img.get_height()
+        self.rect = self.img.get_rect(center=(x,y))
         self.on_ground = False
-        self.on_top = False
         self.velocity = [5, 0]
+        self.direction=0
 
     def move(self, keys):
+        self.velocity[0]=5
+
         if keys[pygame.K_a]:
             self.rect.move_ip(-self.velocity[0], 0)
         if keys[pygame.K_d]:
             self.rect.move_ip(self.velocity[0], 0)
+
+        self.counter+=1
+        if self.counter > 5:
+            self.counter=0
+
+            if keys[pygame.K_d] == True:
+                self.index += 1
+                self.direction = 0
+                if self.index >= len(self.images_right):
+                    self.index = 0
+
+            elif keys[pygame.K_a] == True:
+                self.index += 1
+                self.direction = 1
+                if self.index >= len(self.images_left):
+                    self.index = 0
+
+            else:
+                self.index=0
+
+            if self.direction==0:
+                self.img = self.images_right[self.index]
+            elif self.direction==1:
+                self.img = self.images_left[self.index]
 
     def update(self):
         if not self.on_ground:
@@ -166,7 +202,7 @@ class Player(pygame.sprite.Sprite):
 
     def jump(self):
         self.on_ground = False
-        self.velocity[1] = -10
+        self.velocity[1] = -15
 
     def wall_collisions(self):
         if self.rect.left < 0:
@@ -178,6 +214,24 @@ class Player(pygame.sprite.Sprite):
         if self.rect.bottom >= SCREEN_HEIGHT:
             self.rect.bottom = SCREEN_HEIGHT
             self.on_ground = True
+
+    def collision(self, world):
+        for tile in world.tile_list:
+            #horizontal collision
+            if tile[1].colliderect(self.rect.x + self.velocity[0], self.rect.y, self.width, self.height):
+                self.velocity[0]=0
+
+            #vertical collision
+            if tile[1].colliderect(self.rect.x, self.rect.y + self.velocity[1], self.width, self.height):
+                if self.velocity[1] < 0:
+                    self.velocity[1]=tile[1].bottom-self.rect.top
+                elif self.velocity[1] > 0:
+                    self.on_ground=True
+                    self.velocity[1]=tile[1].top-self.rect.bottom
+
+
+
+
 
 if __name__ == '__main__':
     game = Game()
