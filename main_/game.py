@@ -15,7 +15,7 @@ class Game:
         self.font = pygame.font.SysFont("Arial", 20)
         self.running = True
         self.count = 1
-        self.gravity = 0.7
+        self.gravity = 0.75
 
     def setting_up(self):
         pygame.init()
@@ -28,7 +28,6 @@ class Game:
 
     def main_screen(self):
         # game loop
-
         self.create_player(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
         while self.running:
             self.clock.tick(FPS)
@@ -37,10 +36,7 @@ class Game:
 
             self.draw()
 
-            self.vandi.wall_collisions()
-            self.vandi.collision(self.world)
             self.update_movement(keys)
-            self.vandi.update()
 
             self.endframe()
 
@@ -62,7 +58,7 @@ class Game:
         return keys
 
     def update_movement(self,keys):
-        self.vandi.move(keys)
+        self.vandi.move(keys, self.world)
 
 
     def draw(self):
@@ -92,9 +88,9 @@ class Game:
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
-            ['A19', 'B1'],
-            ['A19', 'B1'],
-            ['A19', 'B1'],
+            ['A16', 'B4'],
+            ['A15', 'B5'],
+            ['A14', 'B6'],
             ['A3', 'B17'],
         ]
         self.world=World(layout)
@@ -160,16 +156,23 @@ class Player(pygame.sprite.Sprite):
         self.height=self.img.get_height()
         self.rect = self.img.get_rect(center=(x,y))
         self.on_ground = False
-        self.velocity = [5, 0]
+        self.velocity = [0, 0]
         self.direction=0
 
-    def move(self, keys):
-        self.velocity[0]=5
+    def move(self, keys, world):
+        self.velocity[0]=0
+        self.on_ground=False
 
         if keys[pygame.K_a]:
-            self.rect.move_ip(-self.velocity[0], 0)
+            self.velocity[0]=-5
+
         if keys[pygame.K_d]:
-            self.rect.move_ip(self.velocity[0], 0)
+            self.velocity[0]=5
+
+        self.collision(world)
+        self.wall_collisions()
+        self.update()
+        self.rect.move_ip(self.velocity[0], 0)
 
         self.counter+=1
         if self.counter > 5:
@@ -217,19 +220,20 @@ class Player(pygame.sprite.Sprite):
 
     def collision(self, world):
         for tile in world.tile_list:
+            # vertical collision
+            if tile[1].colliderect(self.rect.x, self.rect.y + self.velocity[1], self.width, self.height):
+                if self.velocity[1] < 0:
+                    self.velocity[1] = tile[1].bottom - self.rect.top
+                elif self.velocity[1] > 0:
+                    self.velocity[1] = tile[1].top - self.rect.bottom
+
             #horizontal collision
             if tile[1].colliderect(self.rect.x + self.velocity[0], self.rect.y, self.width, self.height):
                 self.velocity[0]=0
 
-            #vertical collision
-            if tile[1].colliderect(self.rect.x, self.rect.y + self.velocity[1], self.width, self.height):
-                if self.velocity[1] < 0:
-                    self.velocity[1]=tile[1].bottom-self.rect.top
-                elif self.velocity[1] > 0:
-                    self.on_ground=True
-                    self.velocity[1]=tile[1].top-self.rect.bottom
-
-
+            #gravity stuff
+            if tile[1].colliderect(self.rect.x, self.rect.y + self.velocity[1] + game.gravity, self.width, self.height):
+                self.on_ground = True
 
 
 
