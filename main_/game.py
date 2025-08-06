@@ -23,9 +23,7 @@ class Game():
         pygame.display.set_caption('Myths Of Vandi')
 
     def create_player(self,x,y):
-        PLAYER_WIDTH = pygame.display.get_window_size()[0] // 200
-        PLAYER_HEIGHT = pygame.display.get_window_size()[1] // 200
-        self.vandi=Player(PLAYER_WIDTH,PLAYER_HEIGHT, x, y)
+        self.vandi=Player(x, y, self)
 
     def main_screen(self):
         # game loop
@@ -38,7 +36,7 @@ class Game():
 
             self.draw()
 
-            self.update_movement(keys)
+            self.update(keys)
 
             self.endframe()
 
@@ -59,9 +57,11 @@ class Game():
 
         return keys
 
-    def update_movement(self,keys):
+    def update(self,keys):
         self.vandi.move(keys, self.world)
         self.world.sharks.update(keys)
+
+        self.vandi.attack(keys)
 
     def draw(self):
         self.screen.fill((50, 50, 50))
@@ -81,7 +81,7 @@ class Game():
     def level1_load(self):
         layout=[
             ['B20'],
-            ['B1', 'A18', 'B1'],
+            ['B1', 'A17', 'M1', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
@@ -117,6 +117,7 @@ class World():
         self.data = data
 
         self.block=pygame.image.load(f'assets/blocks/block.jpg')
+        self.metal=pygame.image.load(f'assets/blocks/metal.png')
         self.sharks=pygame.sprite.Group()
 
         self.tile_count=0
@@ -142,6 +143,18 @@ class World():
 
                         self.tile_count = self.tile_count + 1
 
+                if tile[0]=='M':
+                    for i in range(int(tile[1:])):
+                        img = pygame.transform.scale(self.metal, (TILE_SIZE, TILE_SIZE))
+                        img_rect = img.get_rect()
+                        img_rect.x = TILE_SIZE * self.tile_count
+                        img_rect.y = TILE_SIZE * self.row_count
+
+                        tile = (img, img_rect)
+                        self.tile_list.append(tile)
+
+                        self.tile_count = self.tile_count + 1
+
                 if tile[0]=='S':
                     # (TILE_SIZE * self.row_count - ((TILE_SIZE * (self.row_count)) - (TILE_SIZE * (self.row_count + 1))))
                     shark=Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'shark', 2)
@@ -154,7 +167,7 @@ class World():
         return self.tile_list
 
 class Player():
-    def __init__(self, width, height, x, y):
+    def __init__(self, x, y, game):
         self.images_right=[]
         self.images_left = []
         self.index=0
@@ -166,10 +179,12 @@ class Player():
             img_left=pygame.transform.flip(img,True,False)
             self.images_left.append(img_left)
 
+        self.game=game
         self.img=self.images_right[self.index]
         self.width=self.img.get_width()
         self.height=self.img.get_height()
         self.rect = self.img.get_rect(center=(x,y))
+        self.attack_hitbox=Attack_hitbox(self.rect.midright, self)
         self.on_ground = False
         self.velocity = [0, 0]
         self.direction=0
@@ -222,6 +237,15 @@ class Player():
         self.on_ground = False
         self.velocity[1] = -15
 
+    def attack(self, keys):
+        if self.attack_hitbox==None:
+            self.attack_hitbox=Attack_hitbox(self.rect.midright, self)
+
+        if keys[pygame.MOUSEBUTTONDOWN]:
+            self.game.screen.blit(self.attack_hitbox.image, self.attack_hitbox.rect)
+            self.attack_hitbox.hit_collision()
+        self.attack_hitbox.animation()
+
     def wall_collisions(self):
         if self.rect.left < 0:
             self.rect.left = 0
@@ -249,6 +273,35 @@ class Player():
             #gravity stuff
             if tile[1].colliderect(self.rect.x, self.rect.y + self.velocity[1] + game.gravity, self.width, self.height):
                 self.on_ground = True
+
+class Attack_hitbox(pygame.sprite.Sprite):
+    def __init__(self, pos, attacker):
+        self.images = []
+        self.index = 0
+        for i in range(1,7):
+            img = pygame.image.load(f'assets/attack/attack{i}.png').convert_alpha()
+            img=pygame.transform.rotate(img, -45)
+            self.images.append(img)
+
+        self.attacker=attacker
+        self.image=self.images[0]
+        self.rect=self.image.get_rect(midleft=pos)
+
+    def hit_collision(self):
+        for tile in self.attacker.game.world.tile_list:
+            if isinstance(tile[1], Enemy):
+                if tile[1].colliderect(self.rect):
+                    pass
+
+    def animation(self):
+        self.index+=1
+        self.image=self.images[self.index]
+
+        if self.index>=(len(self.images)-1):
+            self.index = 0
+            #self=None
+
+
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y, name, size_scale):
