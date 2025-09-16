@@ -172,6 +172,9 @@ class Player():
         self.images_left = []
         self.index=0
         self.counter=0
+        self.image_size = [64,64]
+        self.walking_sprites=SpriteSheet(pygame.image.load('assets/vandi/walk.png').convert_alpha())
+
         for i in range(1,3):
             img = pygame.image.load(f'assets/vandi/idle/vandi{i}.png').convert_alpha()
             img=pygame.transform.scale(img,(96,192))#(img.get_width()*2.5, img.get_height()*2.5))
@@ -351,6 +354,17 @@ class Enemy(pygame.sprite.Sprite):
             elif self.direction < 0:
                 self.image = self.images_left[self.index]
 
+class SpriteSheet():
+    def __init__(self, image):
+        self.sheet=image
+
+    def get_image(self, frame_count, size, scale, colour):
+        img = pygame.Surface((size[0], size[1])).convert_alpha()
+        img.blit(self.sheet, (0, 0), (frame_count * size[0], frame_count * size[1], size[0], size[1]))
+        img = pygame.transform.scale(img, (size[0] * scale, size[1] * scale))
+        img.set_colorkey(colour)
+
+        return img
 
 if __name__ == '__main__':
     game = Game()
