@@ -172,14 +172,14 @@ class Player():
         self.images_left = []
         self.index=0
         self.counter=0
-        self.image_size = [64,64]
+        self.image_size = [64,52]
         self.walking_sprites=SpriteSheet(pygame.image.load('assets/vandi/walk.png').convert_alpha())
+        self.animation_steps=9
 
-        for i in range(1,3):
-            img = pygame.image.load(f'assets/vandi/idle/vandi{i}.png').convert_alpha()
-            img=pygame.transform.scale(img,(96,192))#(img.get_width()*2.5, img.get_height()*2.5))
+        for i in range(self.animation_steps):
+            img = self.walking_sprites.get_image(i, self.image_size, 2, (0,0,0)).convert_alpha()
             self.images_right.append(img)
-            img_left=pygame.transform.flip(img,True,False)
+            img_left=pygame.transform.flip(img, True, False)
             self.images_left.append(img_left)
 
         self.game=game
@@ -208,7 +208,7 @@ class Player():
         self.rect.move_ip(self.velocity[0], 0)
 
         self.counter+=1
-        if self.counter > 5:
+        if self.counter > 3:
             self.counter=0
 
             if keys[pygame.K_d] == True:
@@ -360,7 +360,7 @@ class SpriteSheet():
 
     def get_image(self, frame_count, size, scale, colour):
         img = pygame.Surface((size[0], size[1])).convert_alpha()
-        img.blit(self.sheet, (0, 0), (frame_count * size[0], frame_count * size[1], size[0], size[1]))
+        img.blit(self.sheet, (0, 0), (frame_count * size[0], 0, size[0], size[1]))
         img = pygame.transform.scale(img, (size[0] * scale, size[1] * scale))
         img.set_colorkey(colour)
 
