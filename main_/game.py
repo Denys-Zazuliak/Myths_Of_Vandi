@@ -61,7 +61,7 @@ class Game():
         self.vandi.move(keys, self.world)
         self.world.sharks.update(keys)
 
-        self.vandi.attack(keys)
+        self.vandi.attack()
 
     def draw(self):
         self.screen.fill((50, 50, 50))
@@ -187,7 +187,6 @@ class Player():
         self.width=self.img.get_width()
         self.height=self.img.get_height()
         self.rect = self.img.get_rect(center=(x,y))
-        self.attack_hitbox=Attack_hitbox(self.rect.midright, self)
         self.on_ground = False
         self.velocity = [0, 0]
         self.direction=0
@@ -240,14 +239,17 @@ class Player():
         self.on_ground = False
         self.velocity[1] = -15
 
-    def attack(self, keys):
-        if self.attack_hitbox==None:
-            self.attack_hitbox=Attack_hitbox(self.rect.midright, self)
+    def attack(self):
+        self.attack_hitbox = Attack_hitbox(self)
 
-        if keys[pygame.MOUSEBUTTONDOWN]:
+        if pygame.mouse.get_pressed()[0]:
             self.game.screen.blit(self.attack_hitbox.image, self.attack_hitbox.rect)
             self.attack_hitbox.hit_collision()
-        self.attack_hitbox.animation()
+
+        self.attack_hitbox.index += 1
+        if self.attack_hitbox.index >= (len(self.attack_hitbox.images_right) - 1):
+            self.attack_hitbox.index = 0
+        self.attack_hitbox.update()
 
     def wall_collisions(self):
         if self.rect.left < 0:
@@ -278,17 +280,25 @@ class Player():
                 self.on_ground = True
 
 class Attack_hitbox(pygame.sprite.Sprite):
-    def __init__(self, pos, attacker):
-        self.images = []
+    def __init__(self, attacker):
         self.index = 0
+        self.images_right = []
+        self.images_left = []
         for i in range(1,7):
             img = pygame.image.load(f'assets/attack/attack{i}.png').convert_alpha()
-            img=pygame.transform.rotate(img, -45)
-            self.images.append(img)
+            img=pygame.transform.rotate(img, -150)
+            img = pygame.transform.scale(img,  (img.get_width(), img.get_height()))
+            self.images_right.append(img)
+            img_left = pygame.transform.flip(img, True, False)
+            self.images_left.append(img_left)
 
         self.attacker=attacker
-        self.image=self.images[0]
-        self.rect=self.image.get_rect(midleft=pos)
+        if self.attacker.direction == 0:
+            self.image = self.images_right[0]
+            self.rect = self.image.get_rect(midleft=self.attacker.rect.midright)
+        elif self.attacker.direction == 1:
+            self.image = self.images_left[0]
+            self.rect = self.image.get_rect(midright=self.attacker.rect.midleft)
 
     def hit_collision(self):
         for tile in self.attacker.game.world.tile_list:
@@ -296,13 +306,14 @@ class Attack_hitbox(pygame.sprite.Sprite):
                 if tile[1].colliderect(self.rect):
                     pass
 
-    def animation(self):
-        self.index+=1
-        self.image=self.images[self.index]
+    def update(self):
+        if self.attacker.direction == 0:
+            self.image=self.images_right[0]
+        elif self.attacker.direction == 1:
+            self.image=self.images_left[0]
 
-        if self.index>=(len(self.images)-1):
-            self.index = 0
-            #self=None
+        self.rect.update(self.attacker.rect.x, self.attacker.rect.y)
+
 
 
 
