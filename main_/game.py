@@ -191,7 +191,7 @@ class Player():
         self.velocity = [0, 0]
         self.direction=0
         self.attack_hitbox = Attack_hitbox(self)
-        self.attacking=False
+
 
     def move(self, keys, world):
         self.velocity[0]=0
@@ -242,18 +242,19 @@ class Player():
         self.velocity[1] = -15
 
     def attack(self):
-        if pygame.mouse.get_pressed()[0] and self.attacking==False:
-            self.game.screen.blit(self.attack_hitbox.image, self.attack_hitbox.rect)
+        if pygame.mouse.get_pressed()[0] and self.attack_hitbox.index<7:
             self.attack_hitbox.active=True
-            self.attacking=True
-        else:
-            self.attacking=False
+            self.attack_hitbox.animation()
 
-        # if self.attacking==True and self.attack_hitbox.index!=0:
-        self.attack_hitbox.hit_collision()
-        if self.attack_hitbox.index >= (len(self.attack_hitbox.images_right) - 1):
-            self.attack_hitbox.index = 0
-            self.attack_hitbox.active=False
+        if self.attack_hitbox.active:
+            self.game.screen.blit(self.attack_hitbox.image, self.attack_hitbox.rect)
+            self.attack_hitbox.hit_collision()
+            if self.game.count//2==0:
+                self.attack_hitbox.index+=1
+
+            if self.attack_hitbox.index >= (len(self.attack_hitbox.images_right) - 1):
+                self.attack_hitbox.index = 0
+                self.attack_hitbox.active=False
         self.attack_hitbox.update()
 
     def wall_collisions(self):
@@ -314,16 +315,20 @@ class Attack_hitbox(pygame.sprite.Sprite):
 
     def update(self):
         if self.active==True:
-            if self.attacker.game.count%(FPS//10)==0:
-                self.index+=1
-                if self.attacker.direction == 0:
-                    self.image=self.images_right[self.index]
-                elif self.attacker.direction == 1:
-                    self.image=self.images_left[self.index]
+            # if self.attacker.game.count%(FPS//30)==0:
+            self.index+=1
 
-        self.rect.x=self.attacker.rect.right
-        self.rect.y=self.attacker.rect.midtop[1]
-
+    def animation(self):
+        # if self.active==True:
+        if self.attacker.direction == 0:
+            self.image = self.images_right[self.index]
+            self.rect.left = self.attacker.rect.right
+            self.rect.y = self.attacker.rect.midtop[1]
+        elif self.attacker.direction == 1:
+            self.image = self.images_left[self.index]
+            self.rect.right = self.attacker.rect.left
+            self.rect.y = self.attacker.rect.top
+        # self.index += 1
 
 
 class Enemy(pygame.sprite.Sprite):
