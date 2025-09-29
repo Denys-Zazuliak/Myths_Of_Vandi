@@ -242,20 +242,13 @@ class Player():
         self.velocity[1] = -15
 
     def attack(self):
-        if pygame.mouse.get_pressed()[0] and self.attack_hitbox.index<7:
+        if pygame.mouse.get_pressed()[0] and self.attack_hitbox.index < (len(self.attack_hitbox.images_right) - 1):
             self.attack_hitbox.active=True
-            self.attack_hitbox.animation()
 
         if self.attack_hitbox.active:
             self.game.screen.blit(self.attack_hitbox.image, self.attack_hitbox.rect)
+            self.attack_hitbox.animation()
             self.attack_hitbox.hit_collision()
-            if self.game.count//2==0:
-                self.attack_hitbox.index+=1
-
-            if self.attack_hitbox.index >= (len(self.attack_hitbox.images_right) - 1):
-                self.attack_hitbox.index = 0
-                self.attack_hitbox.active=False
-        self.attack_hitbox.update()
 
     def wall_collisions(self):
         if self.rect.left < 0:
@@ -300,6 +293,9 @@ class Attack_hitbox(pygame.sprite.Sprite):
 
         self.active=False
         self.attacker=attacker
+
+        self.counter = 1
+
         if self.attacker.direction == 0:
             self.image = self.images_right[0]
             self.rect = self.image.get_rect(midleft=self.attacker.rect.midright)
@@ -308,18 +304,25 @@ class Attack_hitbox(pygame.sprite.Sprite):
             self.rect = self.image.get_rect(midright=self.attacker.rect.midleft)
 
     def hit_collision(self):
-        for tile in self.attacker.game.world.tile_list:
-            if isinstance(tile[1], Enemy):
-                if tile[1].colliderect(self.rect):
-                    pass
-
-    def update(self):
-        if self.active==True:
-            # if self.attacker.game.count%(FPS//30)==0:
-            self.index+=1
+        for tile in self.attacker.game.world.sharks:
+            if tile.rect.colliderect(self.rect):
+                tile.health-=1
+                print(tile.health)
+                tile.check_dead()
+                self.attacker.game.world.sharks.remove(tile)
 
     def animation(self):
-        # if self.active==True:
+        self.counter += self.attacker.game.clock.get_time()
+        # frame_time = FPS // self.counter
+        frame_time=1
+
+        if self.counter > frame_time:
+            self.index += 1
+
+        if self.index >= len(self.images_right):
+            self.index = 0
+            self.active = False
+
         if self.attacker.direction == 0:
             self.image = self.images_right[self.index]
             self.rect.left = self.attacker.rect.right
@@ -328,7 +331,6 @@ class Attack_hitbox(pygame.sprite.Sprite):
             self.image = self.images_left[self.index]
             self.rect.right = self.attacker.rect.left
             self.rect.y = self.attacker.rect.top
-        # self.index += 1
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -351,6 +353,8 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.y += y + 64 - self.rect.bottom
         self.direction = 1
         self.distance_tracker = 0
+
+        self.health=5
 
     def update(self, keys):
         self.rect.x += self.direction
@@ -378,6 +382,10 @@ class Enemy(pygame.sprite.Sprite):
                 self.image = self.images_right[self.index]
             elif self.direction < 0:
                 self.image = self.images_left[self.index]
+
+    def check_dead(self):
+        if self.health <= 0:
+            del self
 
 class SpriteSheet():
     def __init__(self, image):
