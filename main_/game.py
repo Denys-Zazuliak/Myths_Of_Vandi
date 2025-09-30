@@ -5,6 +5,7 @@ SCREEN_WIDTH = 1280 #1600
 SCREEN_HEIGHT = 960 #900
 TILE_SIZE=64 #50
 FPS = 60
+INVULNERABILITY_TIME = 0.5
 
 class Game():
     def __init__(self):
@@ -97,7 +98,7 @@ class Game():
             ['A3', 'B17'],
         ]
         if self.level_count==1:
-            self.world=World(layout)
+            self.world=World(layout, self)
             self.level1=self.world.load_level()
 
         for tile in self.level1:
@@ -112,9 +113,10 @@ class Game():
         self.count += 1
 
 class World():
-    def __init__(self, data):
+    def __init__(self, data, game):
         self.tile_list=[]
         self.data = data
+        self.game=game
 
         self.block=pygame.image.load(f'assets/blocks/block.jpg')
         self.metal=pygame.image.load(f'assets/blocks/metal.png')
@@ -157,7 +159,7 @@ class World():
 
                 if tile[0]=='S':
                     # (TILE_SIZE * self.row_count - ((TILE_SIZE * (self.row_count)) - (TILE_SIZE * (self.row_count + 1))))
-                    shark=Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'shark', 2)
+                    shark=Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'shark', 2, self.game)
                     self.sharks.add(shark)
 
                     self.tile_count += 1
@@ -172,6 +174,7 @@ class Player():
         self.images_left = []
         self.index=0
         self.counter=0
+
         self.image_size = [64,52]
         self.walking_sprites=SpriteSheet(pygame.image.load('assets/vandi/walk.png').convert_alpha())
         self.animation_steps=9
@@ -187,10 +190,13 @@ class Player():
         self.width=self.img.get_width()
         self.height=self.img.get_height()
         self.rect = self.img.get_rect(center=(x,y))
+
         self.on_ground = False
         self.velocity = [0, 0]
         self.direction=0
         self.attack_hitbox = Attack_hitbox(self)
+
+        self.health=5
 
 
     def move(self, keys, world):
@@ -294,7 +300,7 @@ class Attack_hitbox(pygame.sprite.Sprite):
         self.active=False
         self.attacker=attacker
 
-        self.counter = 1
+        self.last_update = 0
 
         if self.attacker.direction == 0:
             self.image = self.images_right[0]
@@ -305,19 +311,25 @@ class Attack_hitbox(pygame.sprite.Sprite):
 
     def hit_collision(self):
         for tile in self.attacker.game.world.sharks:
-            if tile.rect.colliderect(self.rect):
+            if not tile.invulnerable and tile.rect.colliderect(self.rect):
                 tile.health-=1
+                tile.invulnerable=True
                 print(tile.health)
-                tile.check_dead()
-                self.attacker.game.world.sharks.remove(tile)
+                if tile.check_dead():
+                    self.attacker.game.world.sharks.remove(tile)
+
+            tile.invulnerability_update()
 
     def animation(self):
-        self.counter += self.attacker.game.clock.get_time()
-        # frame_time = FPS // self.counter
-        frame_time=1
+        delay=100
 
-        if self.counter > frame_time:
+        current_time = pygame.time.get_ticks()
+        if self.last_update == 0:
+            self.last_update = current_time
+
+        if current_time - self.last_update > delay:
             self.index += 1
+            self.last_update = current_time
 
         if self.index >= len(self.images_right):
             self.index = 0
@@ -334,7 +346,7 @@ class Attack_hitbox(pygame.sprite.Sprite):
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, x, y, name, size_scale):
+    def __init__(self, x, y, name, size_scale, game):
         pygame.sprite.Sprite.__init__(self)
 
         self.images_right = []
@@ -348,13 +360,17 @@ class Enemy(pygame.sprite.Sprite):
             img_left = pygame.transform.flip(img, True, False)
             self.images_left.append(img_left)
 
+        self.game = game
         self.image = self.images_right[self.index]
         self.rect=self.image.get_rect(center=(x,y))
         self.rect.y += y + 64 - self.rect.bottom
         self.direction = 1
         self.distance_tracker = 0
 
-        self.health=5
+        self.health=3
+        self.invulnerable=False
+        self.i_frames=0
+
 
     def update(self, keys):
         self.rect.x += self.direction
@@ -384,8 +400,24 @@ class Enemy(pygame.sprite.Sprite):
                 self.image = self.images_left[self.index]
 
     def check_dead(self):
+        dead=False
         if self.health <= 0:
             del self
+            dead=True
+        return dead
+
+    def invulnerability_update(self):
+        self.i_frames += 1
+        if self.i_frames >= (INVULNERABILITY_TIME * FPS):
+            self.invulnerable=False
+            self.i_frames = 0
+
+    def collision(self):
+        # if self.rect.colliderect(self.game.vandi):
+        #     print(self.game.vandi.health)
+        #     self.game.vandi.health-=1
+        pass
+
 
 class SpriteSheet():
     def __init__(self, image):
