@@ -91,7 +91,7 @@ class Game():
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
-            ['B1', 'A17', 'S1', 'B1'],
+            ['B5', 'A13', 'S1', 'B1'],
             ['A16', 'B4'],
             ['A15', 'B5'],
             ['A8', 'S1', 'A5', 'B6'],
@@ -270,18 +270,23 @@ class Player():
     def collision(self, world):
         for tile in world.tile_list:
             # vertical collision
-            if tile[1].colliderect(self.rect.x, self.rect.y + self.velocity[1], self.width, self.height):
+            jump_rect=pygame.Rect((self.rect.x, self.rect.y + self.velocity[1]), (self.width, self.height))
+            if rect_collision(tile[1], jump_rect):
                 if self.velocity[1] < 0:
-                    self.velocity[1] = tile[1].bottom - self.rect.top
+                    self.velocity[1] = tile[1].bottom - self.rect.top + 1
+                    # self.velocity[1] = 0
                 elif self.velocity[1] > 0:
-                    self.velocity[1] = tile[1].top - self.rect.bottom
+                    self.velocity[1] = tile[1].top - self.rect.bottom - 1
+                    # self.velocity[1] = 0
 
             #horizontal collision
-            if tile[1].colliderect(self.rect.x + self.velocity[0], self.rect.y, self.width, self.height):
+            walking_rect=pygame.Rect(self.rect.x + self.velocity[0], self.rect.y, self.width, self.height)
+            if rect_collision(tile[1], walking_rect):
                 self.velocity[0]=0
 
             #gravity stuff
-            if tile[1].colliderect(self.rect.x, self.rect.y + self.velocity[1] + game.gravity, self.width, self.height):
+            gravity_rect=pygame.Rect(self.rect.x, self.rect.y + self.velocity[1] + game.gravity, self.width, self.height)
+            if rect_collision(tile[1], gravity_rect):
                 self.on_ground = True
 
 class Attack_hitbox(pygame.sprite.Sprite):
@@ -311,7 +316,7 @@ class Attack_hitbox(pygame.sprite.Sprite):
 
     def hit_collision(self):
         for tile in self.attacker.game.world.sharks:
-            if not tile.invulnerable and tile.rect.colliderect(self.rect):
+            if not tile.invulnerable and rect_collision(tile.rect, self.rect):
                 tile.health-=1
                 tile.invulnerable=True
                 print(tile.health)
@@ -412,8 +417,8 @@ class Enemy(pygame.sprite.Sprite):
             self.invulnerable=False
             self.i_frames = 0
 
-    def collision(self):
-        # if self.rect.colliderect(self.game.vandi):
+    def attack(self):
+        # if rect_collision(self.rect, self.game.vandi):
         #     print(self.game.vandi.health)
         #     self.game.vandi.health-=1
         pass
@@ -430,6 +435,25 @@ class SpriteSheet():
         img.set_colorkey(colour)
 
         return img
+
+def rect_collision(rect1, rect2, horizontal_case=False, vertical_case=False):
+    # if vertical_case:
+    if rect1.right>=rect2.left and rect1.left<=rect2.right and rect1.bottom>=rect2.top and rect1.top<=rect2.bottom:
+        colliding=True
+    else:
+        colliding=False
+    # elif horizontal_case:
+    #     if rect1.right >= rect2.left and rect1.left <= rect2.right and rect1.bottom<=rect2.top and rect1.top>=rect2.bottom:
+    #         colliding = True
+    #     else:
+    #         colliding = False
+    # else:
+    #     if rect1.right>=rect2.left and rect1.left<=rect2.right and rect1.bottom>=rect2.top and rect1.top<=rect2.bottom:
+    #         colliding=True
+    #     else:
+    #         colliding=False
+
+    return colliding
 
 if __name__ == '__main__':
     game = Game()
