@@ -61,6 +61,8 @@ class Game():
     def update(self,keys):
         self.vandi.move(keys, self.world)
         self.world.sharks.update(keys)
+        for enemy in self.world.sharks:
+            enemy.attack()
 
         self.vandi.attack()
 
@@ -73,11 +75,16 @@ class Game():
 
         self.screen.blit(self.vandi.img, self.vandi.rect)
 
+        self.draw_text(f'Health: {self.vandi.health}')
+
     def draw_grid(self):
         for line in range(0, 80):
             pygame.draw.line(self.screen, (255, 255, 255), (0, line * TILE_SIZE), (SCREEN_WIDTH, line * TILE_SIZE))
             pygame.draw.line(self.screen, (255, 255, 255), (line * TILE_SIZE, 0), (line * TILE_SIZE, SCREEN_HEIGHT))
 
+    def draw_text(self, text):
+        text = Text(text, 50, (0,0))
+        text.draw(self.screen)
 
     def level1_load(self):
         layout=[
@@ -196,7 +203,9 @@ class Player():
         self.direction=0
         self.attack_hitbox = Attack_hitbox(self)
 
-        self.health=5
+        self.health = 5
+        self.invulnerable = False
+        self.i_frames = 0
 
 
     def move(self, keys, world):
@@ -288,6 +297,19 @@ class Player():
             gravity_rect=pygame.Rect(self.rect.x, self.rect.y + self.velocity[1] + game.gravity, self.width, self.height)
             if rect_collision(tile[1], gravity_rect):
                 self.on_ground = True
+
+    def check_dead(self):
+        dead = False
+        if self.health <= 0:
+            del self
+            dead = True
+        return dead
+
+    def invulnerability_update(self):
+        self.i_frames += 1
+        if self.i_frames >= (INVULNERABILITY_TIME * FPS):
+            self.invulnerable = False
+            self.i_frames = 0
 
 class Attack_hitbox(pygame.sprite.Sprite):
     def __init__(self, attacker):
@@ -418,11 +440,14 @@ class Enemy(pygame.sprite.Sprite):
             self.i_frames = 0
 
     def attack(self):
-        # if rect_collision(self.rect, self.game.vandi):
-        #     print(self.game.vandi.health)
-        #     self.game.vandi.health-=1
-        pass
+        if not self.game.vandi.invulnerable and rect_collision(self.game.vandi.rect, self.rect):
+            self.game.vandi.health -= 1
+            self.game.vandi.invulnerable = True
+            print(self.game.vandi.health)
+            if self.game.vandi.check_dead():
+                print('Game Over')
 
+        self.game.vandi.invulnerability_update()
 
 class SpriteSheet():
     def __init__(self, image):
@@ -436,22 +461,23 @@ class SpriteSheet():
 
         return img
 
-def rect_collision(rect1, rect2, horizontal_case=False, vertical_case=False):
-    # if vertical_case:
+class Text():
+    def __init__(self, text, size, coordinates,colour=(0,0,0)):
+        self.font = pygame.font.SysFont('Arial', size)
+        self.text=self.font.render(text, True, colour)
+        self.text_rect=self.text.get_rect(topleft=(coordinates))
+
+    def draw(self, surface):
+        temp_surface = pygame.Surface(self.text.get_size())
+        temp_surface.fill((192, 192, 192))
+        temp_surface.blit(self.text, self.text_rect)
+        surface.blit(temp_surface, (0, 0))
+
+def rect_collision(rect1, rect2):
     if rect1.right>=rect2.left and rect1.left<=rect2.right and rect1.bottom>=rect2.top and rect1.top<=rect2.bottom:
         colliding=True
     else:
         colliding=False
-    # elif horizontal_case:
-    #     if rect1.right >= rect2.left and rect1.left <= rect2.right and rect1.bottom<=rect2.top and rect1.top>=rect2.bottom:
-    #         colliding = True
-    #     else:
-    #         colliding = False
-    # else:
-    #     if rect1.right>=rect2.left and rect1.left<=rect2.right and rect1.bottom>=rect2.top and rect1.top<=rect2.bottom:
-    #         colliding=True
-    #     else:
-    #         colliding=False
 
     return colliding
 
