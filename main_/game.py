@@ -60,11 +60,11 @@ class Game():
 
     def update(self,keys):
         self.vandi.move(keys, self.world)
+        self.vandi.attack()
+
         self.world.sharks.update(keys)
         for enemy in self.world.sharks:
             enemy.attack()
-
-        self.vandi.attack()
 
     def draw(self):
         self.screen.fill((50, 50, 50))
@@ -93,8 +93,8 @@ class Game():
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
-            ['B1', 'A18', 'B1'],
-            ['B1', 'A18', 'B1'],
+            ['B1', 'A9','S1','A8', 'B1'],
+            ['B1', 'A9', 'B1', 'A8', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
@@ -391,6 +391,8 @@ class Enemy(pygame.sprite.Sprite):
         self.image = self.images_right[self.index]
         self.rect=self.image.get_rect(center=(x,y))
         self.rect.y += y + 64 - self.rect.bottom
+        self.velocity = [1,0]
+        self.velocity = [1,0]
         self.direction = 1
         self.distance_tracker = 0
 
@@ -400,31 +402,36 @@ class Enemy(pygame.sprite.Sprite):
 
 
     def update(self, keys):
-        self.rect.x += self.direction
-        self.distance_tracker += 1
+        self.collision(self.game.world)
+        self.distance_tracker += self.velocity[0]
 
         if abs(self.distance_tracker) >= 64:
-            self.direction *= -1
-            self.distance_tracker *= -1
+            self.velocity[0] *= -1
+            self.distance_tracker = 0
+
+        if self.velocity[0] < 0:
+            self.direction = -1
+        elif self.velocity[0] > 0:
+            self.direction = 1
 
         self.counter += 1
-        if self.counter > 5:
+        if self.counter > 10:
             self.counter = 0
 
             if self.direction>0:
                 self.index += 1
                 if self.index >= len(self.images_right):
                     self.index = 0
+                self.image = self.images_right[self.index]
+
 
             elif self.direction<0:
                 self.index += 1
                 if self.index >= len(self.images_left):
                     self.index = 0
-
-            if self.direction > 0:
-                self.image = self.images_right[self.index]
-            elif self.direction < 0:
                 self.image = self.images_left[self.index]
+
+            self.rect.move_ip(self.velocity[0], 0)
 
     def check_dead(self):
         dead=False
@@ -448,6 +455,22 @@ class Enemy(pygame.sprite.Sprite):
                 print('Game Over')
 
         self.game.vandi.invulnerability_update()
+
+    def collision(self, world):
+        for tile in world.tile_list:
+            # vertical collision
+            gravity_rect = pygame.Rect((self.rect.x, self.rect.y + self.velocity[1]), (self.rect.width, self.rect.height))
+            if rect_collision(tile[1], gravity_rect):
+                if self.velocity[1] > 0:
+                    self.velocity[1] = tile[1].top - self.rect.bottom - 1
+
+            # horizontal collision
+            walking_rect = pygame.Rect(self.rect.x + self.velocity[0], self.rect.y, self.rect.width, self.rect.height)
+            if rect_collision(tile[1], walking_rect):
+                self.velocity[0] *= -1
+
+        self.rect.move_ip(self.velocity)
+        self.velocity[1] += self.game.gravity
 
 class SpriteSheet():
     def __init__(self, image):
@@ -473,7 +496,7 @@ class Text():
         temp_surface.blit(self.text, self.text_rect)
         surface.blit(temp_surface, (0, 0))
 
-def rect_collision(rect1, rect2):
+def rect_collision(rect1, rect2, horz=False):
     if rect1.right>=rect2.left and rect1.left<=rect2.right and rect1.bottom>=rect2.top and rect1.top<=rect2.bottom:
         colliding=True
     else:
