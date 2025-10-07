@@ -94,7 +94,7 @@ class Game():
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A9','S1','A8', 'B1'],
-            ['B1', 'A9', 'B1', 'A8', 'B1'],
+            ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
@@ -447,6 +447,15 @@ class Enemy(pygame.sprite.Sprite):
             self.i_frames = 0
 
     def attack(self):
+        width=TILE_SIZE*4
+        height=TILE_SIZE*3
+        if not rect_collision(self.game.vandi.rect, self.rect):
+            #make it midleft= instead
+            vision_box=pygame.Rect((self.rect.x+self.rect.width//2), (self.rect.y-height//2), width, height)
+            vision_box_surface=pygame.Surface((width, height)).convert_alpha()
+            vision_box_surface.fill((250,50,50,200))
+            self.game.screen.blit(vision_box_surface, vision_box)
+
         if not self.game.vandi.invulnerable and rect_collision(self.game.vandi.rect, self.rect):
             self.game.vandi.health -= 1
             self.game.vandi.invulnerable = True
@@ -496,7 +505,7 @@ class Text():
         temp_surface.blit(self.text, self.text_rect)
         surface.blit(temp_surface, (0, 0))
 
-def rect_collision(rect1, rect2, horz=False):
+def rect_collision(rect1, rect2):
     if rect1.right>=rect2.left and rect1.left<=rect2.right and rect1.bottom>=rect2.top and rect1.top<=rect2.bottom:
         colliding=True
     else:
