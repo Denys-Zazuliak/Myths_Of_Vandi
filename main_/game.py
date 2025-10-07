@@ -450,7 +450,7 @@ class Enemy(pygame.sprite.Sprite):
         width=TILE_SIZE*4
         height=TILE_SIZE*3
         if not rect_collision(self.game.vandi.rect, self.rect):
-            #make it midleft= instead
+            #make it midleft= instead (ask AI on how to do it and note it in the write up
             vision_box=pygame.Rect((self.rect.x+self.rect.width//2), (self.rect.y-height//2), width, height)
             vision_box_surface=pygame.Surface((width, height)).convert_alpha()
             vision_box_surface.fill((250,50,50,200))
