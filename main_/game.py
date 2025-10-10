@@ -4,7 +4,8 @@ import pygame
 
 SCREEN_WIDTH = 1280 #1600
 SCREEN_HEIGHT = 960 #900
-TILE_SIZE=64 #50
+TILE_SIZE = 64 #50
+SCROLL_THRESH = 216
 FPS = 60
 INVULNERABILITY_TIME = 0.5
 
@@ -60,7 +61,8 @@ class Game():
         return keys
 
     def update(self,keys):
-        self.vandi.move(keys, self.world)
+        screen_scroll=self.vandi.move(keys, self.world)
+        print(screen_scroll)
         self.vandi.attack()
 
         for enemy in self.world.sharks:
@@ -90,24 +92,44 @@ class Game():
         text.draw(self.screen)
 
     def level1_load(self):
-        layout=[
+        # layout=[
+        #     ['B20'],
+        #     ['B1', 'A17', 'M1', 'B1'],
+        #     ['B1', 'A18', 'B1'],
+        #     ['B1', 'A18', 'B1'],
+        #     ['B1', 'A18', 'B1'],
+        #     ['B1', 'A9','S1','A8', 'B1'],
+        #     # ['B1', 'A18', 'B1'],
+        #     ['B1', 'A9', 'B1', 'A8', 'B1'],
+        #     ['B1', 'A18', 'B1'],
+        #     ['B1', 'A18', 'B1'],
+        #     ['B1', 'A18', 'B1'],
+        #     ['B5', 'A13', 'S1', 'B1'],
+        #     ['A16', 'B4'],
+        #     ['A15', 'B5'],
+        #     ['A8', 'S1', 'A5', 'B6'],
+        #     ['A3', 'B17'],
+        # ]
+
+        layout = [
             ['B20'],
             ['B1', 'A17', 'M1', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
-            ['B1', 'A9','S1','A8', 'B1'],
-            ['B1', 'A18', 'B1'],
-            # ['B1', 'A9', 'B1', 'A8', 'B1'],
+            ['B1', 'A9', 'S1', 'A8', 'B1'],
+            # ['B1', 'A18', 'B1'],
+            ['B1', 'A9', 'B1', 'A8', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B5', 'A13', 'S1', 'B1'],
-            ['A16', 'B4'],
-            ['A15', 'B5'],
-            ['A8', 'S1', 'A5', 'B6'],
-            ['A3', 'B17'],
+            ['A20'],
+            ['A20'],
+            ['A8', 'S1', 'A11'],
+            ['A3', 'B20'],
         ]
+
         if self.level_count==1:
             self.world=World(layout, self)
             self.level1=self.world.load_level()
@@ -211,8 +233,12 @@ class Player():
         self.invulnerable = False
         self.i_frames = 0
 
+        self.screen_scroll=0
+        self.bg_scroll=0
 
     def move(self, keys, world):
+        #movement
+        self.screen_scroll=0
         self.velocity[0]=0
         self.on_ground=False
 
@@ -223,10 +249,19 @@ class Player():
             self.velocity[0]=5
 
         self.collision(world)
-        self.wall_collisions()
+        # self.wall_collisions()
         self.update()
         self.rect.move_ip(self.velocity[0], 0)
 
+        #camera scroll
+        if self.rect.right >SCREEN_WIDTH - SCROLL_THRESH or self.rect.left <SCROLL_THRESH:
+            self.rect.move_ip(-self.velocity[0], 0)
+            self.screen_scroll = -self.velocity[0]
+
+        return self.screen_scroll
+
+
+        #animation
         self.counter+=1
         if self.counter > 3:
             self.counter=0
@@ -451,8 +486,8 @@ class Enemy(pygame.sprite.Sprite):
             self.i_frames = 0
 
     def attack(self):
-        width=TILE_SIZE*1
-        height=TILE_SIZE*1
+        width=TILE_SIZE*4
+        height=TILE_SIZE*3
 
         y=self.rect.y - height // 2
         if self.direction > 0:
@@ -465,13 +500,36 @@ class Enemy(pygame.sprite.Sprite):
         vision_box = pygame.Rect(x, y, width, height)
         vision_box_surface = pygame.Surface((width, height)).convert_alpha()
         vision_box_surface.fill((250, 50, 50, 200))
-        self.game.screen.blit(vision_box_surface, vision_box)
+        # self.game.screen.blit(vision_box_surface, vision_box)
 
         if (not rect_collision(self.game.vandi.rect, self.rect)) and rect_collision(self.game.vandi.rect, vision_box):
             self.tracking=True
+
+            if self.velocity[0] < 0:
+                self.direction = -1
+            elif self.velocity[0] > 0:
+                self.direction = 1
+
+            self.counter += 1
+            if self.counter > 10:
+                self.counter = 0
+
+                if self.direction > 0:
+                    self.index += 1
+                    if self.index >= len(self.images_right):
+                        self.index = 0
+                    self.image = self.images_right[self.index]
+
+
+                elif self.direction < 0:
+                    self.index += 1
+                    if self.index >= len(self.images_left):
+                        self.index = 0
+                    self.image = self.images_left[self.index]
+
             self.rect.x+=self.velocity[0]
-        # else:
-        #     self.targeting=False
+        else:
+            self.tracking=False
 
         if not self.game.vandi.invulnerable and rect_collision(self.game.vandi.rect, self.rect):
             self.game.vandi.health -= 1
