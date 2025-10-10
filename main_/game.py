@@ -1,3 +1,4 @@
+#AMONGUS
 import random
 import pygame
 
@@ -28,7 +29,7 @@ class Game():
 
     def main_screen(self):
         # game loop
-        self.create_player(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+        self.create_player(TILE_SIZE*3, TILE_SIZE*7)
         while self.running:
             #if self.level_count==1:
             self.clock.tick(FPS)
@@ -62,9 +63,11 @@ class Game():
         self.vandi.move(keys, self.world)
         self.vandi.attack()
 
-        self.world.sharks.update(keys)
         for enemy in self.world.sharks:
             enemy.attack()
+            if not enemy.tracking:
+                enemy.update()
+            enemy.collision(self.world)
 
     def draw(self):
         self.screen.fill((50, 50, 50))
@@ -95,6 +98,7 @@ class Game():
             ['B1', 'A18', 'B1'],
             ['B1', 'A9','S1','A8', 'B1'],
             ['B1', 'A18', 'B1'],
+            # ['B1', 'A9', 'B1', 'A8', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
@@ -391,18 +395,18 @@ class Enemy(pygame.sprite.Sprite):
         self.image = self.images_right[self.index]
         self.rect=self.image.get_rect(center=(x,y))
         self.rect.y += y + 64 - self.rect.bottom
-        self.velocity = [1,0]
-        self.velocity = [1,0]
+
+        self.velocity = [2,0]
         self.direction = 1
         self.distance_tracker = 0
+        self.tracking = False
 
         self.health=3
         self.invulnerable=False
         self.i_frames=0
 
 
-    def update(self, keys):
-        self.collision(self.game.world)
+    def update(self):
         self.distance_tracker += self.velocity[0]
 
         if abs(self.distance_tracker) >= 64:
@@ -447,14 +451,27 @@ class Enemy(pygame.sprite.Sprite):
             self.i_frames = 0
 
     def attack(self):
-        width=TILE_SIZE*4
-        height=TILE_SIZE*3
-        if not rect_collision(self.game.vandi.rect, self.rect):
-            #make it midleft= instead (ask AI on how to do it and note it in the write up
-            vision_box=pygame.Rect((self.rect.x+self.rect.width//2), (self.rect.y-height//2), width, height)
-            vision_box_surface=pygame.Surface((width, height)).convert_alpha()
-            vision_box_surface.fill((250,50,50,200))
-            self.game.screen.blit(vision_box_surface, vision_box)
+        width=TILE_SIZE*1
+        height=TILE_SIZE*1
+
+        y=self.rect.y - height // 2
+        if self.direction > 0:
+            x=self.rect.midright[0]
+            self.velocity[0]=abs(self.velocity[0])
+        else:
+            x=self.rect.midleft[0]-width
+            self.velocity[0]=abs(self.velocity[0])*-1
+
+        vision_box = pygame.Rect(x, y, width, height)
+        vision_box_surface = pygame.Surface((width, height)).convert_alpha()
+        vision_box_surface.fill((250, 50, 50, 200))
+        self.game.screen.blit(vision_box_surface, vision_box)
+
+        if (not rect_collision(self.game.vandi.rect, self.rect)) and rect_collision(self.game.vandi.rect, vision_box):
+            self.tracking=True
+            self.rect.x+=self.velocity[0]
+        # else:
+        #     self.targeting=False
 
         if not self.game.vandi.invulnerable and rect_collision(self.game.vandi.rect, self.rect):
             self.game.vandi.health -= 1
