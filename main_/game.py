@@ -1,6 +1,7 @@
 #AMONGUS
 import random
 import pygame
+import json
 
 SCREEN_WIDTH = 1280 #1600
 SCREEN_HEIGHT = 960 #900
@@ -587,6 +588,18 @@ def rect_collision(rect1, rect2):
         colliding=False
 
     return colliding
+
+def read_json(file):
+    file=file+".json"
+    with open(file) as json_file:
+        data = json.load(json_file)
+    return data
+
+def write_json(data, file='Save'):
+    file=file+'.json'
+    with open(file, 'w') as json_file:
+        json.dump(data, json_file, indent=2, separators=(", ", " : "), sort_keys=True)
+    return file
 
 if __name__ == '__main__':
     game = Game()
