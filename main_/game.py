@@ -17,6 +17,7 @@ class Game():
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))#, pygame.FULLSCREEN)
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont("Arial", 20)
+        self.menu = Menu(self)
         self.running = True
         self.count = 1
         self.gravity = 0.75
@@ -33,6 +34,8 @@ class Game():
         # game loop
         self.create_player(TILE_SIZE*3, TILE_SIZE*7)
         while self.running:
+            while not self.menu.close:
+                self.menu.main_menu()
             #if self.level_count==1:
             self.clock.tick(FPS)
 
@@ -580,6 +583,24 @@ class Text():
         temp_surface.fill((192, 192, 192))
         temp_surface.blit(self.text, self.text_rect)
         surface.blit(temp_surface, (0, 0))
+
+class Menu():
+    def __init__(self, game):
+        self.game = game
+        self.bg=pygame.image.load('assets/menu/background.jpg')
+        self.bg_rect=self.bg.get_rect()
+        self.close=False
+
+    def main_menu(self):
+        start=Text('Start', 5, (SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
+        self.game.screen.blit(self.bg, self.bg_rect)
+        start.draw(self.game.screen)
+
+    def inventory(self):
+        pass
+
+    def save(self):
+        write_json({'name': self.game.vandi, 'level_count': self.game.level_count}, self.game.vandi)
 
 def rect_collision(rect1, rect2):
     if rect1.right>=rect2.left and rect1.left<=rect2.right and rect1.bottom>=rect2.top and rect1.top<=rect2.bottom:
