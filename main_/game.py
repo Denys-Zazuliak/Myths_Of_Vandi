@@ -34,16 +34,17 @@ class Game():
         # game loop
         self.create_player(TILE_SIZE*3, TILE_SIZE*7)
         while self.running:
-            while not self.menu.close:
-                self.menu.main_menu()
             #if self.level_count==1:
             self.clock.tick(FPS)
 
             keys=self.input_handling()
 
-            self.draw()
+            if (self.menu.pause or self.menu.inventory):
+                self.menu.pause()
+            else:
+               self.draw()
+               self.update(keys)
 
-            self.update(keys)
 
             self.endframe()
 
@@ -54,6 +55,8 @@ class Game():
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    self.menu.pause = True
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
 
@@ -66,7 +69,7 @@ class Game():
 
     def update(self,keys):
         screen_scroll=self.vandi.move(keys, self.world)
-        print(screen_scroll)
+        # print(screen_scroll)
         self.vandi.attack()
 
         for enemy in self.world.sharks:
@@ -258,11 +261,11 @@ class Player():
         self.rect.move_ip(self.velocity[0], 0)
 
         #camera scroll
-        if self.rect.right >SCREEN_WIDTH - SCROLL_THRESH or self.rect.left <SCROLL_THRESH:
-            self.rect.move_ip(-self.velocity[0], 0)
-            self.screen_scroll = -self.velocity[0]
-
-        return self.screen_scroll
+        # if self.rect.right >SCREEN_WIDTH - SCROLL_THRESH or self.rect.left <SCROLL_THRESH:
+        #     self.rect.move_ip(-self.velocity[0], 0)
+        #     self.screen_scroll = -self.velocity[0]
+        #
+        # return self.screen_scroll
 
 
         #animation
@@ -573,28 +576,36 @@ class SpriteSheet():
         return img
 
 class Text():
-    def __init__(self, text, size, coordinates,colour=(0,0,0)):
+    def __init__(self, text, size, coordinates,colour=(255,255,255)):
         self.font = pygame.font.SysFont('Arial', size)
         self.text=self.font.render(text, True, colour)
         self.text_rect=self.text.get_rect(topleft=(coordinates))
 
+    # def draw(self, surface):
+    #     temp_surface = pygame.Surface(self.text.get_size())
+    #     temp_surface.fill((192, 192, 192))
+    #     temp_surface.blit(self.text, self.text_rect)
+    #     surface.blit(temp_surface, (0, 0))
+
     def draw(self, surface):
-        temp_surface = pygame.Surface(self.text.get_size())
-        temp_surface.fill((192, 192, 192))
-        temp_surface.blit(self.text, self.text_rect)
-        surface.blit(temp_surface, (0, 0))
+        pos=self.text_rect.x,self.text_rect.y
+        surface.blit(self.text, pos)
 
 class Menu():
     def __init__(self, game):
         self.game = game
-        self.bg=pygame.image.load('assets/menu/background.jpg')
+        self.bg=pygame.image.load('assets/menu/background1.jpg')
+        self.bg=pygame.transform.scale(self.bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.bg_rect=self.bg.get_rect()
         self.close=False
+        self.inventory=False
+        self.pause=False
 
-    def main_menu(self):
-        start=Text('Start', 5, (SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
+    def pause(self):
         self.game.screen.blit(self.bg, self.bg_rect)
-        start.draw(self.game.screen)
+        # self.game.screen.fill((0, 0, 0))
+        resume = Text('Resume', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        resume.draw(self.game.screen)
 
     def inventory(self):
         pass
@@ -602,12 +613,43 @@ class Menu():
     def save(self):
         write_json({'name': self.game.vandi, 'level_count': self.game.level_count}, self.game.vandi)
 
+
+class Button():
+    def __init__(self, x, y, image, scale):
+        width = image.get_width()
+        height = image.get_height()
+        self.image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+        self.active = False
+
+    def draw_and_collision(self, surface):
+        mouse_pos = pygame.mouse.get_pos()
+
+        if point_collision(mouse_pos, self.rect):
+            if self.active == False and pygame.mouse.get_pressed()[0]==True:
+                self.active = True
+            else:
+                self.active = False
+
+        surface.blit(self.image, self.rect)
+
+        return self.active
+
+
 def rect_collision(rect1, rect2):
     if rect1.right>=rect2.left and rect1.left<=rect2.right and rect1.bottom>=rect2.top and rect1.top<=rect2.bottom:
         colliding=True
     else:
         colliding=False
 
+    return colliding
+
+def point_collision(point_pos, rect):
+    if point_pos[0]>=rect.left and point_pos[0]<=rect.right and point_pos[1]>=rect.top and point_pos[1]<=rect.bottom:
+        colliding=True
+    else:
+        colliding=False
     return colliding
 
 def read_json(file):
