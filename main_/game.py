@@ -1,5 +1,7 @@
 #AMONGUS
-import random
+
+# add wall jump
+
 import pygame
 import json
 
@@ -10,7 +12,7 @@ SCROLL_THRESH = 216
 FPS = 60
 INVULNERABILITY_TIME = 0.5
 
-class Game():
+class Game:
     def __init__(self):
         # general setup
         self.setting_up()
@@ -22,8 +24,12 @@ class Game():
         self.count = 1
         self.gravity = 0.75
         self.level_count = 1
+        self.world = None
+        self.vandi = None
+        self.level1 = None
 
-    def setting_up(self):
+    @staticmethod
+    def setting_up():
         pygame.init()
         pygame.display.set_caption('Myths Of Vandi')
 
@@ -39,8 +45,8 @@ class Game():
 
             keys=self.input_handling()
 
-            if (self.menu.pause or self.menu.inventory):
-                self.menu.pause()
+            if self.menu.pause or self.menu.inventory:
+                self.menu.pause_menu()
             else:
                self.draw()
                self.update(keys)
@@ -68,7 +74,8 @@ class Game():
         return keys
 
     def update(self,keys):
-        screen_scroll=self.vandi.move(keys, self.world)
+        # screen_scroll=self.vandi.move(keys, self.world)
+        self.vandi.move(keys, self.world)
         # print(screen_scroll)
         self.vandi.attack()
 
@@ -152,11 +159,11 @@ class Game():
         self.clock.tick(FPS)
         self.count += 1
 
-class World():
-    def __init__(self, data, game):
+class World:
+    def __init__(self, data, parent_class):
         self.tile_list=[]
         self.data = data
-        self.game=game
+        self.game=parent_class
 
         self.block=pygame.image.load(f'assets/blocks/block.jpg')
         self.metal=pygame.image.load(f'assets/blocks/metal.png')
@@ -175,27 +182,11 @@ class World():
 
                 if tile[0]=='B':
                     for i in range(int(tile[1:])):
-                        img=pygame.transform.scale(self.block,(TILE_SIZE,TILE_SIZE))
-                        img_rect=img.get_rect()
-                        img_rect.x = TILE_SIZE*self.tile_count
-                        img_rect.y= TILE_SIZE*self.row_count
-
-                        tile=(img, img_rect)
-                        self.tile_list.append(tile)
-
-                        self.tile_count = self.tile_count + 1
+                        tile_load(self, self.block)
 
                 if tile[0]=='M':
                     for i in range(int(tile[1:])):
-                        img = pygame.transform.scale(self.metal, (TILE_SIZE, TILE_SIZE))
-                        img_rect = img.get_rect()
-                        img_rect.x = TILE_SIZE * self.tile_count
-                        img_rect.y = TILE_SIZE * self.row_count
-
-                        tile = (img, img_rect)
-                        self.tile_list.append(tile)
-
-                        self.tile_count = self.tile_count + 1
+                        tile_load(self, self.metal)
 
                 if tile[0]=='S':
                     # (TILE_SIZE * self.row_count - ((TILE_SIZE * (self.row_count)) - (TILE_SIZE * (self.row_count + 1))))
@@ -208,7 +199,7 @@ class World():
 
         return self.tile_list
 
-class Player():
+class Player:
     def __init__(self, x, y, game):
         self.images_right=[]
         self.images_left = []
@@ -234,7 +225,7 @@ class Player():
         self.on_ground = False
         self.velocity = [0, 0]
         self.direction=0
-        self.attack_hitbox = Attack_hitbox(self)
+        self.attackHitbox = AttackHitbox(self)
 
         self.health = 5
         self.invulnerable = False
@@ -273,13 +264,13 @@ class Player():
         if self.counter > 3:
             self.counter=0
 
-            if keys[pygame.K_d] == True:
+            if keys[pygame.K_d]:
                 self.index += 1
                 self.direction = 0
                 if self.index >= len(self.images_right):
                     self.index = 0
 
-            elif keys[pygame.K_a] == True:
+            elif keys[pygame.K_a]:
                 self.index += 1
                 self.direction = 1
                 if self.index >= len(self.images_left):
@@ -303,13 +294,13 @@ class Player():
         self.velocity[1] = -15
 
     def attack(self):
-        if pygame.mouse.get_pressed()[0] and self.attack_hitbox.index < (len(self.attack_hitbox.images_right) - 1):
-            self.attack_hitbox.active=True
+        if pygame.mouse.get_pressed()[0] and self.attackHitbox.index < (len(self.attackHitbox.images_right) - 1):
+            self.attackHitbox.active=True
 
-        if self.attack_hitbox.active:
-            self.game.screen.blit(self.attack_hitbox.image, self.attack_hitbox.rect)
-            self.attack_hitbox.animation()
-            self.attack_hitbox.hit_collision()
+        if self.attackHitbox.active:
+            self.game.screen.blit(self.attackHitbox.image, self.attackHitbox.rect)
+            self.attackHitbox.animation()
+            self.attackHitbox.hit_collision()
 
     def wall_collisions(self):
         if self.rect.left < 0:
@@ -357,8 +348,9 @@ class Player():
             self.invulnerable = False
             self.i_frames = 0
 
-class Attack_hitbox(pygame.sprite.Sprite):
+class AttackHitbox(pygame.sprite.Sprite):
     def __init__(self, attacker):
+        super().__init__()
         self.index = 0
         self.images_right = []
         self.images_left = []
@@ -563,7 +555,7 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.move_ip(self.velocity)
         self.velocity[1] += self.game.gravity
 
-class SpriteSheet():
+class SpriteSheet:
     def __init__(self, image):
         self.sheet=image
 
@@ -575,11 +567,11 @@ class SpriteSheet():
 
         return img
 
-class Text():
+class Text:
     def __init__(self, text, size, coordinates,colour=(255,255,255)):
         self.font = pygame.font.SysFont('Arial', size)
         self.text=self.font.render(text, True, colour)
-        self.text_rect=self.text.get_rect(topleft=(coordinates))
+        self.text_rect=self.text.get_rect(topleft=coordinates)
 
     # def draw(self, surface):
     #     temp_surface = pygame.Surface(self.text.get_size())
@@ -591,17 +583,17 @@ class Text():
         pos=self.text_rect.x,self.text_rect.y
         surface.blit(self.text, pos)
 
-class Menu():
-    def __init__(self, game):
-        self.game = game
-        self.bg=pygame.image.load('assets/menu/background1.jpg')
+class Menu:
+    def __init__(self, parent_class):
+        self.game = parent_class
+        self.bg=pygame.image.load('assets/menu/background.jpg')
         self.bg=pygame.transform.scale(self.bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.bg_rect=self.bg.get_rect()
         self.close=False
         self.inventory=False
         self.pause=False
 
-    def pause(self):
+    def pause_menu(self):
         self.game.screen.blit(self.bg, self.bg_rect)
         # self.game.screen.fill((0, 0, 0))
         resume = Text('Resume', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
@@ -614,7 +606,7 @@ class Menu():
         write_json({'name': self.game.vandi, 'level_count': self.game.level_count}, self.game.vandi)
 
 
-class Button():
+class Button:
     def __init__(self, x, y, image, scale):
         width = image.get_width()
         height = image.get_height()
@@ -636,6 +628,16 @@ class Button():
 
         return self.active
 
+def tile_load(self, material):
+    img = pygame.transform.scale(material, (TILE_SIZE, TILE_SIZE))
+    img_rect = img.get_rect()
+    img_rect.x = TILE_SIZE * self.tile_count
+    img_rect.y = TILE_SIZE * self.row_count
+
+    tile = (img, img_rect)
+    self.tile_list.append(tile)
+
+    self.tile_count = self.tile_count + 1
 
 def rect_collision(rect1, rect2):
     if rect1.right>=rect2.left and rect1.left<=rect2.right and rect1.bottom>=rect2.top and rect1.top<=rect2.bottom:
