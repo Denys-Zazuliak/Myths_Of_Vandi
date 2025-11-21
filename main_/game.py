@@ -571,7 +571,7 @@ class Text:
     def __init__(self, text, size, coordinates,colour=(255,255,255)):
         self.font = pygame.font.SysFont('Arial', size)
         self.text=self.font.render(text, True, colour)
-        self.text_rect=self.text.get_rect(topleft=coordinates)
+        self.text_rect=self.text.get_rect(center=coordinates)
 
     # def draw(self, surface):
     #     temp_surface = pygame.Surface(self.text.get_size())
@@ -589,15 +589,34 @@ class Menu:
         self.bg=pygame.image.load('assets/menu/background.jpg')
         self.bg=pygame.transform.scale(self.bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.bg_rect=self.bg.get_rect()
+
         self.close=False
         self.inventory=False
         self.pause=False
 
+        self.start=Button(SCREEN_WIDTH//2,(SCREEN_HEIGHT//2)-250, f'assets/menu/buttons/start.png', 0.2)
+        self.settings=Button(SCREEN_WIDTH//2,(SCREEN_HEIGHT//2)-150, f'assets/menu/buttons/settings.png', 0.2)
+
     def pause_menu(self):
-        self.game.screen.blit(self.bg, self.bg_rect)
-        # self.game.screen.fill((0, 0, 0))
-        resume = Text('Resume', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-        resume.draw(self.game.screen)
+        self.pause=True
+        paused=Text('Paused', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
+        # self.game.screen.blit(self.bg, self.bg_rect)
+        self.game.screen.fill((0, 0, 0))
+
+        paused.draw(self.game.screen)
+        self.start.draw_and_collision(self.game.screen)
+        self.settings.draw_and_collision(self.game.screen)
+
+        if self.start.active:
+            self.pause=False
+
+        if self.settings.active:
+            self.settings_menu()
+
+
+    def settings_menu(self):
+        print('settings Menu')
+        self.game.screen.fill((255, 255, 255))
 
     def inventory(self):
         pass
@@ -608,14 +627,16 @@ class Menu:
 
 class Button:
     def __init__(self, x, y, image, scale):
-        width = image.get_width()
-        height = image.get_height()
-        self.image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
-        self.rect = self.image.get_rect()
-        self.rect.topleft = (x, y)
+        self.image=pygame.image.load(image)
+        width = self.image.get_width()
+        height = self.image.get_height()
+        self.image = pygame.transform.scale(self.image, (int(width * scale), int(height * scale)))
+        self.rect = self.image.get_rect(center=(x,y))
         self.active = False
 
     def draw_and_collision(self, surface):
+        surface.blit(self.image, (self.rect.x, self.rect.y))
+
         mouse_pos = pygame.mouse.get_pos()
 
         if point_collision(mouse_pos, self.rect):
@@ -623,8 +644,6 @@ class Button:
                 self.active = True
             else:
                 self.active = False
-
-        surface.blit(self.image, self.rect)
 
         return self.active
 
