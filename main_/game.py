@@ -94,15 +94,15 @@ class Game:
 
         self.screen.blit(self.vandi.img, self.vandi.rect)
 
-        self.draw_text(f'Health: {self.vandi.health}')
+        self.draw_text(f'Health: {self.vandi.health}', (100,20))
 
     def draw_grid(self):
         for line in range(0, 80):
             pygame.draw.line(self.screen, (255, 255, 255), (0, line * TILE_SIZE), (SCREEN_WIDTH, line * TILE_SIZE))
             pygame.draw.line(self.screen, (255, 255, 255), (line * TILE_SIZE, 0), (line * TILE_SIZE, SCREEN_HEIGHT))
 
-    def draw_text(self, text):
-        text = Text(text, 50, (0,0))
+    def draw_text(self, text, coordinates):
+        text = Text(text, 50, coordinates)
         text.draw(self.screen)
 
     def level1_load(self):
@@ -590,39 +590,66 @@ class Menu:
         self.bg=pygame.transform.scale(self.bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.bg_rect=self.bg.get_rect()
 
-        self.close=False
+        self.settings_flag=False
         self.inventory=False
         self.pause=False
 
-        self.start=Button(SCREEN_WIDTH//2,(SCREEN_HEIGHT//2)-250, f'assets/menu/buttons/start.png', 0.2)
-        self.settings=Button(SCREEN_WIDTH//2,(SCREEN_HEIGHT//2)-150, f'assets/menu/buttons/settings.png', 0.2)
-
     def pause_menu(self):
         self.pause=True
+        self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
+        self.settings = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 150, f'assets/menu/buttons/settings.png', 0.2)
+        self.save = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 50, f'assets/menu/buttons/save.png', 0.2)
+        self.load = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 50, f'assets/menu/buttons/load.png', 0.2)
+        self.buttons = [self.start, self.settings, self.save, self.load]
         paused=Text('Paused', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
         # self.game.screen.blit(self.bg, self.bg_rect)
         self.game.screen.fill((0, 0, 0))
 
         paused.draw(self.game.screen)
-        self.start.draw_and_collision(self.game.screen)
-        self.settings.draw_and_collision(self.game.screen)
+        for button in self.buttons:
+            button.draw_and_collision(self.game.screen)
 
         if self.start.active:
+            for button in self.buttons:
+                del button
+
             self.pause=False
 
         if self.settings.active:
+            for button in self.buttons:
+                del button
+
+            self.settings_flag=True
+
+        if self.settings_flag:
             self.settings_menu()
 
+        if self.save.active:
+            self.saving()
 
     def settings_menu(self):
-        print('settings Menu')
-        self.game.screen.fill((255, 255, 255))
+        self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
+        self.buttons = [self.start]
+        settings = Text('Settings', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
+        self.game.screen.fill((0, 0, 0))
+
+        settings.draw(self.game.screen)
+        for button in self.buttons:
+            button.draw_and_collision(self.game.screen)
+
+        if self.start.active:
+            for button in self.buttons:
+                del button
+
+            self.settings_flag=False
+
 
     def inventory(self):
         pass
 
-    def save(self):
-        write_json({'name': self.game.vandi, 'level_count': self.game.level_count}, self.game.vandi)
+    def saving(self):
+        # write_json({'name': self.game.vandi.name, 'level_count': self.game.level_count}, self.game.vandi)
+        write_json({'name': 'Vandi', 'level_count': self.game.level_count}, 'vandi')
 
 
 class Button:
