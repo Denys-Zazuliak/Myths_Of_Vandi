@@ -33,24 +33,25 @@ class Game:
         pygame.init()
         pygame.display.set_caption('Myths Of Vandi')
 
-    def create_player(self,x,y):
-        self.vandi=Player(x, y, self)
-
     def main_screen(self):
         # game loop
-        self.create_player(TILE_SIZE*3, TILE_SIZE*7)
+        self.vandi=Player(TILE_SIZE*3, TILE_SIZE*7, self)
         while self.running:
-            #if self.level_count==1:
             self.clock.tick(FPS)
 
-            keys=self.input_handling()
+            if self.menu.starting_menu_flag:
+                self.menu.start_menu()
 
-            if self.menu.pause or self.menu.inventory:
-                self.menu.pause_menu()
             else:
-               self.draw()
-               self.update(keys)
+                #if self.level_count==1:
 
+                keys=self.input_handling()
+
+                if self.menu.pause or self.menu.inventory:
+                    self.menu.pause_menu()
+                else:
+                   self.draw()
+                   self.update(keys)
 
             self.endframe()
 
@@ -89,6 +90,10 @@ class Game:
         self.screen.fill((50, 50, 50))
         self.draw_grid()
 
+        # if self.menu.load.active:
+        #     self.menu.loading()
+        # else:
+        #     self.level1_load()
         self.level1_load()
         self.world.sharks.draw(self.screen)
 
@@ -586,25 +591,46 @@ class Text:
 class Menu:
     def __init__(self, parent_class):
         self.game = parent_class
-        self.bg=pygame.image.load('assets/menu/background.jpg')
-        self.bg=pygame.transform.scale(self.bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
-        self.bg_rect=self.bg.get_rect()
+        self.pause_bg=pygame.image.load('assets/menu/background.jpg')
+        self.pause_bg = pygame.transform.scale(self.pause_bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.pause_bg_rect=self.pause_bg.get_rect()
+        self.start_bg = pygame.image.load('assets/menu/peak.jpg')
+        self.start_bg = pygame.transform.scale(self.start_bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.start_bg_rect = self.start_bg.get_rect()
 
-        self.settings_flag=False
-        self.inventory=False
-        self.pause=False
-
-    def pause_menu(self):
-        self.pause=True
         self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
         self.settings = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 150, f'assets/menu/buttons/settings.png', 0.2)
         self.save = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 50, f'assets/menu/buttons/save.png', 0.2)
         self.load = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 50, f'assets/menu/buttons/load.png', 0.2)
+
+        self.starting_menu_flag=True
+        self.settings_flag=False
+        self.inventory=False
+        self.pause=False
+
+    def start_menu(self):
+        self.buttons = [self.start, self.settings]
+        title = Text('The Myths Of Vandi', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
+
+        # self.game.screen.blit(self.start_bg, self.start_bg_rect)
+        self.game.screen.fill((0, 0, 0))
+        title.draw(self.game.screen)
+        for button in self.buttons:
+            button.draw_and_collision(self.game.screen)
+
+        if self.start.active:
+            for button in self.buttons:
+                del button
+
+            self.starting_menu_flag=False
+
+    def pause_menu(self):
+        self.pause=True
         self.buttons = [self.start, self.settings, self.save, self.load]
         paused=Text('Paused', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
-        # self.game.screen.blit(self.bg, self.bg_rect)
-        self.game.screen.fill((0, 0, 0))
 
+        # self.game.screen.blit(self.pause_bg, self.pause_bg_rect)
+        self.game.screen.fill((0, 0, 0))
         paused.draw(self.game.screen)
         for button in self.buttons:
             button.draw_and_collision(self.game.screen)
@@ -628,11 +654,10 @@ class Menu:
             self.saving()
 
     def settings_menu(self):
-        self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
         self.buttons = [self.start]
         settings = Text('Settings', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
-        self.game.screen.fill((0, 0, 0))
 
+        self.game.screen.fill((0, 0, 0))
         settings.draw(self.game.screen)
         for button in self.buttons:
             button.draw_and_collision(self.game.screen)
@@ -648,9 +673,12 @@ class Menu:
         pass
 
     def saving(self):
-        # write_json({'name': self.game.vandi.name, 'level_count': self.game.level_count}, self.game.vandi)
         write_json({'name': 'Vandi', 'level_count': self.game.level_count}, 'vandi')
 
+    def loading(self):
+        data=read_json('vandi')
+        self.game.level_count=data['level_count']
+        # self.game.vandi.name=data['name']
 
 class Button:
     def __init__(self, x, y, image, scale):
