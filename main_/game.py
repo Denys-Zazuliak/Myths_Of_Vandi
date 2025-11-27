@@ -33,25 +33,29 @@ class Game:
         pygame.init()
         pygame.display.set_caption('Myths Of Vandi')
 
+    def start_screen(self):
+        while self.menu.starting_menu_flag:
+            self.clock.tick(FPS)
+            self.input_handling()
+            self.menu.start_menu()
+            self.endframe()
+
+        self.main_screen()
+
     def main_screen(self):
         # game loop
         self.vandi=Player(TILE_SIZE*3, TILE_SIZE*7, self)
         while self.running:
             self.clock.tick(FPS)
+            #if self.level_count==1:
 
-            if self.menu.starting_menu_flag:
-                self.menu.start_menu()
+            keys=self.input_handling()
 
+            if self.menu.pause or self.menu.inventory:
+                self.menu.pause_menu()
             else:
-                #if self.level_count==1:
-
-                keys=self.input_handling()
-
-                if self.menu.pause or self.menu.inventory:
-                    self.menu.pause_menu()
-                else:
-                   self.draw()
-                   self.update(keys)
+               self.draw()
+               self.update(keys)
 
             self.endframe()
 
@@ -598,18 +602,16 @@ class Menu:
         self.start_bg = pygame.transform.scale(self.start_bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.start_bg_rect = self.start_bg.get_rect()
 
-        self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
-        self.settings = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 150, f'assets/menu/buttons/settings.png', 0.2)
-        self.save = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 50, f'assets/menu/buttons/save.png', 0.2)
-        self.load = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 50, f'assets/menu/buttons/load.png', 0.2)
-
         self.starting_menu_flag=True
         self.settings_flag=False
         self.inventory=False
         self.pause=False
 
     def start_menu(self):
-        self.buttons = [self.start, self.settings]
+        self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
+        self.settings = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 150, f'assets/menu/buttons/settings.png', 0.2)
+        self.load = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 50, f'assets/menu/buttons/load.png', 0.2)
+        self.buttons = [self.start, self.settings, self.load]
         title = Text('The Myths Of Vandi', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
         # self.game.screen.blit(self.start_bg, self.start_bg_rect)
@@ -624,7 +626,20 @@ class Menu:
 
             self.starting_menu_flag=False
 
+        if self.settings.active:
+            for button in self.buttons:
+                del button
+
+            self.settings_flag=True
+
+        if self.settings_flag:
+            self.settings_menu()
+
     def pause_menu(self):
+        self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
+        self.settings = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 150, f'assets/menu/buttons/settings.png', 0.2)
+        self.save = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 50, f'assets/menu/buttons/save.png', 0.2)
+        self.load = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 50, f'assets/menu/buttons/load.png', 0.2)
         self.pause=True
         self.buttons = [self.start, self.settings, self.save, self.load]
         paused=Text('Paused', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
@@ -654,6 +669,7 @@ class Menu:
             self.saving()
 
     def settings_menu(self):
+        self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
         self.buttons = [self.start]
         settings = Text('Settings', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
@@ -666,7 +682,7 @@ class Menu:
             for button in self.buttons:
                 del button
 
-            self.settings_flag=False
+            self.settings_flag = False
 
 
     def inventory(self):
@@ -695,7 +711,7 @@ class Button:
         mouse_pos = pygame.mouse.get_pos()
 
         if point_collision(mouse_pos, self.rect):
-            if self.active == False and pygame.mouse.get_pressed()[0]==True:
+            if (self.active == False) and (pygame.mouse.get_pressed()[0]==True):
                 self.active = True
             else:
                 self.active = False
@@ -742,4 +758,5 @@ def write_json(data, file='Save'):
 
 if __name__ == '__main__':
     game = Game()
-    game.main_screen()
+    # game.main_screen()
+    game.start_screen()
