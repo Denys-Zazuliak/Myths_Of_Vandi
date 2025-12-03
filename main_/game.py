@@ -1,6 +1,8 @@
 #AMONGUS
 
 # add wall jump
+# https://www.youtube.com/watch?v=OAH8K5lVYOU
+# https://www.youtube.com/watch?v=JTM8_pcQOUU&list=PLjcN1EyupaQm20hlUE11y9y8EY2aXLpnv&index=11
 
 import pygame
 import json
@@ -595,9 +597,9 @@ class Text:
 class Menu:
     def __init__(self, parent_class):
         self.game = parent_class
-        self.pause_bg=pygame.image.load('assets/menu/background.jpg')
+        self.pause_bg = pygame.image.load('assets/menu/background.jpg')
         self.pause_bg = pygame.transform.scale(self.pause_bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
-        self.pause_bg_rect=self.pause_bg.get_rect()
+        self.pause_bg_rect = self.pause_bg.get_rect()
         self.start_bg = pygame.image.load('assets/menu/peak.jpg')
         self.start_bg = pygame.transform.scale(self.start_bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.start_bg_rect = self.start_bg.get_rect()
@@ -608,32 +610,33 @@ class Menu:
         self.pause=False
 
     def start_menu(self):
-        self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
-        self.settings = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 150, f'assets/menu/buttons/settings.png', 0.2)
-        self.load = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 50, f'assets/menu/buttons/load.png', 0.2)
-        self.buttons = [self.start, self.settings, self.load]
-        title = Text('The Myths Of Vandi', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
-
-        # self.game.screen.blit(self.start_bg, self.start_bg_rect)
-        self.game.screen.fill((0, 0, 0))
-        title.draw(self.game.screen)
-        for button in self.buttons:
-            button.draw_and_collision(self.game.screen)
-
-        if self.start.active:
-            for button in self.buttons:
-                del button
-
-            self.starting_menu_flag=False
-
-        if self.settings.active:
-            for button in self.buttons:
-                del button
-
-            self.settings_flag=True
-
         if self.settings_flag:
             self.settings_menu()
+
+        else:
+            self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
+            self.settings = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 150, f'assets/menu/buttons/settings.png', 0.2)
+            self.load = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 50, f'assets/menu/buttons/load.png', 0.2)
+            self.buttons = [self.start, self.settings, self.load]
+            title = Text('The Myths Of Vandi', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
+
+            # self.game.screen.blit(self.start_bg, self.start_bg_rect)
+            self.game.screen.fill((0, 0, 0))
+            title.draw(self.game.screen)
+            for button in self.buttons:
+                button.draw_and_collision(self.game.screen)
+
+            if self.start.active:
+                for button in self.buttons:
+                    del button
+
+                self.starting_menu_flag=False
+
+            if self.settings.active:
+                for button in self.buttons:
+                    del button
+
+                self.settings_flag=True
 
     def pause_menu(self):
         self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
