@@ -26,6 +26,7 @@ class Game:
         self.count = 1
         self.gravity = 0.75
         self.level_count = 1
+        self.screen_scroll=0
         self.world = None
         self.vandi = None
         self.level1 = None
@@ -46,7 +47,7 @@ class Game:
 
     def main_screen(self):
         # game loop
-        self.vandi=Player(TILE_SIZE*3, TILE_SIZE*7, self)
+        self.vandi=Player(TILE_SIZE*5, TILE_SIZE*9, self)
         while self.running:
             self.clock.tick(FPS)
             #if self.level_count==1:
@@ -81,9 +82,7 @@ class Game:
         return keys
 
     def update(self,keys):
-        # screen_scroll=self.vandi.move(keys, self.world)
-        self.vandi.move(keys, self.world)
-        # print(screen_scroll)
+        self.screen_scroll=self.vandi.move(keys, self.world)
         self.vandi.attack()
 
         for enemy in self.world.sharks:
@@ -91,6 +90,9 @@ class Game:
             if not enemy.tracking:
                 enemy.update()
             enemy.collision(self.world)
+
+        self.level1_load()
+        self.world.sharks.draw(self.screen)
 
     def draw(self):
         self.screen.fill((50, 50, 50))
@@ -100,6 +102,7 @@ class Game:
         #     self.menu.loading()
         # else:
         #     self.level1_load()
+
         self.level1_load()
         self.world.sharks.draw(self.screen)
 
@@ -117,47 +120,47 @@ class Game:
         text.draw(self.screen)
 
     def level1_load(self):
-        # layout=[
-        #     ['B20'],
-        #     ['B1', 'A17', 'M1', 'B1'],
-        #     ['B1', 'A18', 'B1'],
-        #     ['B1', 'A18', 'B1'],
-        #     ['B1', 'A18', 'B1'],
-        #     ['B1', 'A9','S1','A8', 'B1'],
-        #     # ['B1', 'A18', 'B1'],
-        #     ['B1', 'A9', 'B1', 'A8', 'B1'],
-        #     ['B1', 'A18', 'B1'],
-        #     ['B1', 'A18', 'B1'],
-        #     ['B1', 'A18', 'B1'],
-        #     ['B5', 'A13', 'S1', 'B1'],
-        #     ['A16', 'B4'],
-        #     ['A15', 'B5'],
-        #     ['A8', 'S1', 'A5', 'B6'],
-        #     ['A3', 'B17'],
-        # ]
-
-        layout = [
+        layout=[
             ['B20'],
             ['B1', 'A17', 'M1', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
-            ['B1', 'A9', 'S1', 'A8', 'B1'],
+            ['B1', 'A9','S1','A8', 'B1'],
             # ['B1', 'A18', 'B1'],
             ['B1', 'A9', 'B1', 'A8', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B1', 'A18', 'B1'],
             ['B5', 'A13', 'S1', 'B1'],
-            ['A20'],
-            ['A20'],
-            ['A8', 'S1', 'A11'],
-            ['A3', 'B20'],
+            ['A16', 'B4'],
+            ['A15', 'B5'],
+            ['A8', 'S1', 'A5', 'B6'],
+            ['A3', 'B17'],
         ]
+
+        # layout = [
+        #     ['B20'],
+        #     ['B1', 'A17', 'M1', 'B1'],
+        #     ['B1', 'A18', 'B1'],
+        #     ['B1', 'A18', 'B1'],
+        #     ['B1', 'A18', 'B1'],
+        #     ['B1', 'A9', 'S1', 'A8', 'B1'],
+        #     # ['B1', 'A18', 'B1'],
+        #     ['B1', 'A9', 'B1', 'A8', 'B1'],
+        #     ['B1', 'A18', 'B1'],
+        #     ['B1', 'A18', 'B1'],
+        #     ['B1', 'A18', 'B1'],
+        #     ['B5', 'A13', 'S1', 'B1'],
+        #     ['A20'],
+        #     ['A20'],
+        #     ['A8', 'S1', 'A11'],
+        #     ['A3', 'B20'],
+        # ]
 
         if self.level_count==1:
             self.world=World(layout, self)
-            self.level1=self.world.load_level()
+            self.level1=self.world.load_level(self.screen_scroll)
 
         for tile in self.level1:
             self.screen.blit(tile[0], tile[1])
@@ -183,8 +186,9 @@ class World:
         self.tile_count=0
         self.row_count=0
 
-    def load_level(self):
+    def load_level(self, *args):
         self.row_count=0
+        print(args)
         for row in self.data:
             self.tile_count=0
             for tile in row:
@@ -193,15 +197,15 @@ class World:
 
                 if tile[0]=='B':
                     for i in range(int(tile[1:])):
-                        tile_load(self, self.block)
+                        tile_load(self, self.block, args)
 
                 if tile[0]=='M':
                     for i in range(int(tile[1:])):
-                        tile_load(self, self.metal)
+                        tile_load(self, self.metal, args)
 
                 if tile[0]=='S':
                     # (TILE_SIZE * self.row_count - ((TILE_SIZE * (self.row_count)) - (TILE_SIZE * (self.row_count + 1))))
-                    shark=Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'shark', 2, self.game)
+                    shark=Enemy(TILE_SIZE * self.tile_count + args[0], (TILE_SIZE * self.row_count), 'shark', 2, self.game)
                     self.sharks.add(shark)
 
                     self.tile_count += 1
@@ -263,12 +267,9 @@ class Player:
         self.rect.move_ip(self.velocity[0], 0)
 
         #camera scroll
-        # if self.rect.right >SCREEN_WIDTH - SCROLL_THRESH or self.rect.left <SCROLL_THRESH:
-        #     self.rect.move_ip(-self.velocity[0], 0)
-        #     self.screen_scroll = -self.velocity[0]
-        #
-        # return self.screen_scroll
-
+        if self.rect.right >SCREEN_WIDTH - SCROLL_THRESH or self.rect.left <SCROLL_THRESH:
+            self.rect.move_ip(-self.velocity[0], 0)
+            self.screen_scroll = -self.velocity[0]
 
         #animation
         self.counter+=1
@@ -294,6 +295,8 @@ class Player:
                 self.img = self.images_right[self.index]
             elif self.direction==1:
                 self.img = self.images_left[self.index]
+
+        return self.screen_scroll
 
     def update(self):
         if not self.on_ground:
@@ -721,16 +724,23 @@ class Button:
 
         return self.active
 
-def tile_load(self, material):
-    img = pygame.transform.scale(material, (TILE_SIZE, TILE_SIZE))
-    img_rect = img.get_rect()
-    img_rect.x = TILE_SIZE * self.tile_count
-    img_rect.y = TILE_SIZE * self.row_count
+class Tile:
+    def __init__(self, material):
+        self.img = pygame.transform.scale(material, (TILE_SIZE, TILE_SIZE))
+        self.img_rect = self.img.get_rect()
+        self.img_rect.x = 0
+        self.img_rect.y = 0
 
-    tile = (img, img_rect)
-    self.tile_list.append(tile)
+    def tile_load(self, material, *args):
+        img = pygame.transform.scale(material, (TILE_SIZE, TILE_SIZE))
+        img_rect = img.get_rect()
+        img_rect.x = TILE_SIZE * self.tile_count + args[0][0]
+        img_rect.y = TILE_SIZE * self.row_count
 
-    self.tile_count = self.tile_count + 1
+        tile = (img, img_rect)
+        self.tile_list.append(tile)
+
+        self.tile_count = self.tile_count + 1
 
 def rect_collision(rect1, rect2):
     if rect1.right>=rect2.left and rect1.left<=rect2.right and rect1.bottom>=rect2.top and rect1.top<=rect2.bottom:
