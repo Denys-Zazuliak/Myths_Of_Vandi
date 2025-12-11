@@ -1,16 +1,28 @@
 #AMONGUS
 
-# add wall jump
-# https://www.youtube.com/watch?v=OAH8K5lVYOU
-# https://www.youtube.com/watch?v=JTM8_pcQOUU&list=PLjcN1EyupaQm20hlUE11y9y8EY2aXLpnv&index=11
+# add wall jump (perchance)
+# add type ins (def function(num:int))
+# add docksins:
+"""
+function's role
+Parameters
+----------
+
+
+Returns
+-------
+
+
+"""
 
 import pygame
+from pygame import mixer
 import json
 
 SCREEN_WIDTH = 1280 #1600
 SCREEN_HEIGHT = 960 #900
 TILE_SIZE = 64 #50
-SCROLL_THRESH = 216
+SCROLL_THRESH = SCREEN_WIDTH//4
 FPS = 60
 INVULNERABILITY_TIME = 0.5
 
@@ -24,6 +36,7 @@ class Game:
         self.menu = Menu(self)
         self.running = True
         self.count = 1
+        self.volume = 1
         self.gravity = 0.75
         self.level_count = 1
         self.screen_scroll=0
@@ -31,9 +44,13 @@ class Game:
         self.vandi = None
         self.level1 = None
 
+        mixer.music.load('assets/audio/bell_ding.mp3')
+        mixer.music.set_volume(self.volume)
+
     @staticmethod
     def setting_up():
         pygame.init()
+        mixer.init()
         pygame.display.set_caption('Myths Of Vandi')
 
     def start_screen(self):
@@ -43,11 +60,12 @@ class Game:
             self.menu.start_menu()
             self.endframe()
 
+        mixer.music.play(-1, 0.0, 5000)
         self.main_screen()
 
     def main_screen(self):
         # game loop
-        self.vandi=Player(TILE_SIZE*5, TILE_SIZE*9, self)
+        self.vandi=Player(TILE_SIZE*6, TILE_SIZE*9, self)
         while self.running:
             self.clock.tick(FPS)
             #if self.level_count==1:
@@ -682,7 +700,9 @@ class Menu:
 
     def settings_menu(self):
         self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
-        self.buttons = [self.start]
+        self.sounds_plus = Button((SCREEN_WIDTH // 2)+300, (SCREEN_HEIGHT // 2) - 175, f'assets/menu/buttons/plus.png', 0.25)
+        self.sounds_minus =Button((SCREEN_WIDTH // 2)+300, (SCREEN_HEIGHT // 2) - 75, f'assets/menu/buttons/minus.png', 0.25)
+        self.buttons = [self.start, self.sounds_plus, self.sounds_minus]
         settings = Text('Settings', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
         self.game.screen.fill((0, 0, 0))
@@ -696,6 +716,14 @@ class Menu:
 
             self.settings_flag = False
 
+        if self.sounds_plus.active:
+            self.game.volume+=0.1
+            mixer.music.set_volume(self.game.volume)
+
+
+        if self.sounds_minus.active:
+            self.game.volume-=0.1
+            mixer.music.set_volume(self.game.volume)
 
     def inventory(self):
         pass
