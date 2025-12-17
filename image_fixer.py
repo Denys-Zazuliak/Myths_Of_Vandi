@@ -1,7 +1,7 @@
 import os
 from PIL import Image
 
-src = f"assets/menu/buttons"
+src = f"main_/assets/menu/buttons"
 dst = "assets_clean"
 os.makedirs(dst, exist_ok=True)
 
