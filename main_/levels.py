@@ -63,6 +63,29 @@ LAYOUT3= [
     ['M17', 'A4', 'M44']
 ]
 
+
+
+
+
+
+
+
+
+
+
+#https://www.spritefusion.com/editor
+# to preview levels
+
+
+
+
+
+
+
+
+
+
+
 def load_levels(level_count, game):
     if level_count == 1:
         world = World(LAYOUT1, game)
