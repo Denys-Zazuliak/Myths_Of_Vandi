@@ -16,8 +16,9 @@ Returns
 """
 
 import pygame
-from pygame import mixer
 import json
+import time
+from pygame import mixer
 from levels import load_levels
 
 SCREEN_WIDTH = 1280 #1600
@@ -67,7 +68,6 @@ class Game:
 
     def main_screen(self):
         # game loop
-        self.vandi=Player(TILE_SIZE*6, TILE_SIZE*9, self)
         while self.running:
             self.clock.tick(FPS)
             #if self.level_count==1:
@@ -103,6 +103,7 @@ class Game:
 
     def update(self,keys):
         self.screen_scroll=self.vandi.move(keys, self.world)
+        self.vandi.wall_collision()
         self.vandi.attack()
 
         for enemy in self.world.sharks:
@@ -144,6 +145,7 @@ class Game:
 
     def level_load(self):
         self.world, self.level1=load_levels(self.level_count, self)
+        self.vandi = Player(TILE_SIZE * 6, TILE_SIZE * 9, self)
 
     def endframe(self):
         # updating display and game
@@ -173,6 +175,7 @@ class Player:
         self.width=self.img.get_width()
         self.height=self.img.get_height()
         self.rect = self.img.get_rect(center=(x,y))
+        # self.rect=pygame.Rect((x, y), (self.width//2, self.height))
 
         self.on_ground = False
         self.velocity = [0, 0]
@@ -253,21 +256,20 @@ class Player:
             self.attackHitbox.animation()
             self.attackHitbox.hit_collision()
 
-    def wall_collisions(self):
+    def wall_collision(self):
         if self.rect.left < 0:
-            self.rect.left = 0
+            self.health = 0
         if self.rect.right > SCREEN_WIDTH:
-            self.rect.right = SCREEN_WIDTH
+            self.health = 0
         if self.rect.top <= 0:
-            self.rect.top = 0
+            self.health = 0
         if self.rect.bottom >= SCREEN_HEIGHT:
-            self.rect.bottom = SCREEN_HEIGHT
-            self.on_ground = True
+            self.health = 0
 
     def collision(self, world):
         for tile in world.tile_list:
             # vertical collision
-            jump_rect=pygame.Rect((self.rect.x, self.rect.y + self.velocity[1]), (self.width, self.height))\
+            jump_rect=pygame.Rect((self.rect.x, self.rect.y + self.velocity[1]), (self.width, self.height))
 
             if 'finish' in tile.material:
                 if rect_collision(tile.img_rect, jump_rect):
@@ -280,7 +282,7 @@ class Player:
 
                 walking_rect = pygame.Rect(self.rect.x + self.velocity[0], self.rect.y, self.width, self.height)
                 if rect_collision(tile.img_rect, walking_rect):
-                    self.game.level_count+=1
+                    self.game.level_count += 1
                     print('load next level')
 
             if rect_collision(tile.img_rect, jump_rect):
@@ -591,6 +593,14 @@ class Menu:
 
                 self.settings_flag=True
 
+            if self.load.active:
+                for button in self.buttons:
+                    del button
+
+                self.loading()
+
+                self.starting_menu_flag = False
+
     def pause_menu(self):
         self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
         self.settings = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 150, f'assets/menu/buttons/settings.png', 0.2)
@@ -638,9 +648,11 @@ class Menu:
         self.sounds_minus =Button((SCREEN_WIDTH // 2)+300, (SCREEN_HEIGHT // 2) - 75, f'assets/menu/buttons/minus.png', 0.25)
         self.buttons = [self.start, self.sounds_plus, self.sounds_minus]
         settings = Text('Settings', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
+        volume = Text(f'{self.game.volume}', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 500))
 
         self.game.screen.fill((0, 0, 0))
         settings.draw(self.game.screen)
+        volume.draw(self.game.screen)
         for button in self.buttons:
             button.draw_and_collision(self.game.screen)
 
@@ -649,6 +661,7 @@ class Menu:
                 del button
 
             self.settings_flag = False
+            time.sleep(0.1)
 
         if self.sounds_plus.active:
             self.game.volume+=0.1
@@ -668,7 +681,10 @@ class Menu:
     def loading(self):
         data=read_json('vandi')
         self.game.level_count=data['level_count']
-        self.game.level_load()
+
+        if self.game.level_count!=self.game.level_count_check:
+            self.game.level_count_check=self.game.level_count
+            self.game.level_load()
 
 class Button:
     def __init__(self, x, y, image, scale):

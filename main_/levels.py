@@ -45,6 +45,24 @@ LAYOUT2 = [
     ['A3', 'B200'],
 ]
 
+LAYOUT3= [
+    ['M65'],
+    ['M1', 'A63', 'M1'],
+    ['M1', 'A63', 'M1'],
+    ['M1', 'A63', 'M1'],
+    ['M1', 'A63', 'M1'],
+    ['M1', 'A63', 'M1'],
+    ['M1', 'A63', 'M1'],
+    ['M1', 'A63', 'M1'],
+    ['M1', 'A63', 'M1'],
+    ['M1', 'A63', 'M1'],
+    ['M1', 'A14', 'M2', 'A2', 'M1', 'A2', 'M2', 'A9', 'M3', 'A13', 'M1', 'A9', 'S1', 'A4', 'M1'],
+    ['M8', 'A3', 'M3', 'A16', 'M1', 'A16', 'M1', 'A10', 'M2', 'A4', 'M1'],
+    ['M9', 'A20', 'M2', 'A13', 'M2', 'A16', 'F1', 'A1', 'M1'],
+    ['M10', 'A18', 'M3', 'A7', 'S1', 'A3', 'M1', 'A15', 'S1', 'A2', 'S1', 'F1', 'A1', 'M1'],
+    ['M17', 'A4', 'M44']
+]
+
 def load_levels(level_count, game):
     if level_count == 1:
         world = World(LAYOUT1, game)
@@ -52,6 +70,10 @@ def load_levels(level_count, game):
 
     elif level_count == 2:
         world = World(LAYOUT2, game)
+        level = world.load_level()
+
+    elif level_count == 3:
+        world = World(LAYOUT3, game)
         level = world.load_level()
 
     return world, level
