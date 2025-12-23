@@ -70,7 +70,6 @@ class Game:
         # game loop
         while self.running:
             self.clock.tick(FPS)
-            #if self.level_count==1:
 
             keys=self.input_handling()
 
@@ -271,6 +270,7 @@ class Player:
             # vertical collision
             jump_rect=pygame.Rect((self.rect.x, self.rect.y + self.velocity[1]), (self.width, self.height))
 
+            # check for end of level
             if 'finish' in tile.material:
                 if rect_collision(tile.img_rect, jump_rect):
                     if self.velocity[1] < 0:
@@ -285,6 +285,7 @@ class Player:
                     self.game.level_count += 1
                     print('load next level')
 
+            # regular collision
             if rect_collision(tile.img_rect, jump_rect):
                 if self.velocity[1] < 0:
                     self.velocity[1] = tile.img_rect.bottom - self.rect.top + 1
@@ -374,152 +375,6 @@ class AttackHitbox(pygame.sprite.Sprite):
             self.image = self.images_left[self.index]
             self.rect.right = self.attacker.rect.left
             self.rect.y = self.attacker.rect.top
-
-
-class Enemy(pygame.sprite.Sprite):
-    def __init__(self, x, y, name, size_scale, game):
-        pygame.sprite.Sprite.__init__(self)
-
-        self.images_right = []
-        self.images_left = []
-        self.index = 0
-        self.counter = 0
-        for i in range(1, 3):
-            img = pygame.image.load(f'assets/enemy/idle/{name}{i}.png').convert_alpha()
-            img = pygame.transform.scale(img,  (img.get_width()*size_scale, img.get_height()*size_scale))
-            self.images_right.append(img)
-            img_left = pygame.transform.flip(img, True, False)
-            self.images_left.append(img_left)
-
-        self.game = game
-        self.image = self.images_right[self.index]
-        self.rect=self.image.get_rect(center=(x,y))
-        self.rect.y += y + 64 - self.rect.bottom
-
-        self.velocity = [2,0]
-        self.direction = 1
-        self.distance_tracker = 0
-        self.tracking = False
-
-        self.health=3
-        self.invulnerable=False
-        self.i_frames=0
-
-
-    def update(self):
-        self.distance_tracker += self.velocity[0]
-
-        if abs(self.distance_tracker) >= 64:
-            self.velocity[0] *= -1
-            self.distance_tracker = 0
-
-        if self.velocity[0] < 0:
-            self.direction = -1
-        elif self.velocity[0] > 0:
-            self.direction = 1
-
-        self.counter += 1
-        if self.counter > 10:
-            self.counter = 0
-
-            if self.direction>0:
-                self.index += 1
-                if self.index >= len(self.images_right):
-                    self.index = 0
-                self.image = self.images_right[self.index]
-
-
-            elif self.direction<0:
-                self.index += 1
-                if self.index >= len(self.images_left):
-                    self.index = 0
-                self.image = self.images_left[self.index]
-
-            self.rect.move_ip(self.velocity[0], 0)
-
-    def check_dead(self):
-        dead=False
-        if self.health <= 0:
-            del self
-            dead=True
-        return dead
-
-    def invulnerability_update(self):
-        self.i_frames += 1
-        if self.i_frames >= (INVULNERABILITY_TIME * FPS):
-            self.invulnerable=False
-            self.i_frames = 0
-
-    def attack(self):
-        width=TILE_SIZE*4
-        height=TILE_SIZE*3
-
-        y=self.rect.y - height // 2
-        if self.direction > 0:
-            x=self.rect.midright[0]
-            self.velocity[0]=abs(self.velocity[0])
-        else:
-            x=self.rect.midleft[0]-width
-            self.velocity[0]=abs(self.velocity[0])*-1
-
-        vision_box = pygame.Rect(x, y, width, height)
-        vision_box_surface = pygame.Surface((width, height)).convert_alpha()
-        vision_box_surface.fill((250, 50, 50, 200))
-        # self.game.screen.blit(vision_box_surface, vision_box)
-
-        if (not rect_collision(self.game.vandi.rect, self.rect)) and rect_collision(self.game.vandi.rect, vision_box):
-            self.tracking=True
-
-            if self.velocity[0] < 0:
-                self.direction = -1
-            elif self.velocity[0] > 0:
-                self.direction = 1
-
-            self.counter += 1
-            if self.counter > 10:
-                self.counter = 0
-
-                if self.direction > 0:
-                    self.index += 1
-                    if self.index >= len(self.images_right):
-                        self.index = 0
-                    self.image = self.images_right[self.index]
-
-
-                elif self.direction < 0:
-                    self.index += 1
-                    if self.index >= len(self.images_left):
-                        self.index = 0
-                    self.image = self.images_left[self.index]
-
-            self.rect.x+=self.velocity[0]
-        else:
-            self.tracking=False
-
-        if not self.game.vandi.invulnerable and rect_collision(self.game.vandi.rect, self.rect):
-            self.game.vandi.health -= 1
-            self.game.vandi.invulnerable = True
-            print(self.game.vandi.health)
-            if self.game.vandi.check_dead():
-                print('Game Over')
-
-        self.game.vandi.invulnerability_update()
-
-    def collision(self, world):
-        for tile in world.tile_list:
-            # vertical collision
-            gravity_rect = pygame.Rect((self.rect.x, self.rect.y + self.velocity[1]), (self.rect.width, self.rect.height))
-            if rect_collision(tile.img_rect, gravity_rect):
-                if self.velocity[1] > 0:
-                    self.velocity[1] = tile.img_rect.top - self.rect.bottom - 1
-
-            # horizontal collision
-            walking_rect = pygame.Rect(self.rect.x + self.velocity[0], self.rect.y, self.rect.width, self.rect.height)
-            if rect_collision(tile.img_rect, walking_rect):
-                self.velocity[0] *= -1
-
-        self.rect.move_ip(self.velocity)
-        self.velocity[1] += self.game.gravity
 
 class SpriteSheet:
     def __init__(self, image):
@@ -648,13 +503,14 @@ class Menu:
         self.sounds_minus =Button((SCREEN_WIDTH // 2)+300, (SCREEN_HEIGHT // 2) - 75, f'assets/menu/buttons/minus.png', 0.25)
         self.buttons = [self.start, self.sounds_plus, self.sounds_minus]
         settings = Text('Settings', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
-        volume = Text(f'{self.game.volume}', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 500))
+        volume = Text(f'Volume: {int(self.game.volume*100)}', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 125))
 
         self.game.screen.fill((0, 0, 0))
         settings.draw(self.game.screen)
         volume.draw(self.game.screen)
         for button in self.buttons:
             button.draw_and_collision(self.game.screen)
+            time.sleep(0.0228)
 
         if self.start.active:
             for button in self.buttons:
@@ -666,7 +522,6 @@ class Menu:
         if self.sounds_plus.active:
             self.game.volume+=0.1
             mixer.music.set_volume(self.game.volume)
-
 
         if self.sounds_minus.active:
             self.game.volume-=0.1
@@ -701,9 +556,9 @@ class Button:
         mouse_pos = pygame.mouse.get_pos()
 
         if point_collision(mouse_pos, self.rect):
-            if (self.active == False) and (pygame.mouse.get_pressed()[0]==True):
+            if pygame.mouse.get_pressed()[0] and not self.active:
                 self.active = True
-            else:
+            if not pygame.mouse.get_pressed()[0]:
                 self.active = False
 
         return self.active
@@ -737,5 +592,4 @@ def write_json(data, file='Save'):
 
 if __name__ == '__main__':
     game = Game()
-    # game.main_screen()
     game.start_screen()

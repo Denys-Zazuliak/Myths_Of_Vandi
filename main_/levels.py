@@ -45,6 +45,7 @@ LAYOUT2 = [
     ['A3', 'B200'],
 ]
 
+# TUTORIAL LEVEL
 LAYOUT3= [
     ['M65'],
     ['M1', 'A63', 'M1'],
