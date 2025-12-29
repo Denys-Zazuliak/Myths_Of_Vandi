@@ -251,21 +251,21 @@ class Enemy(pygame.sprite.Sprite):
             self.i_frames = 0
 
     def attack(self):
-        width=TILE_SIZE*4
+        width=TILE_SIZE*6
         height=TILE_SIZE*3
 
         y=self.rect.y - height // 2
         if self.direction > 0:
-            x=self.rect.midright[0]
+            x=self.rect.midleft[0]
             self.velocity[0]=abs(self.velocity[0])
         else:
-            x=self.rect.midleft[0]-width
+            x=self.rect.midright[0]-width
             self.velocity[0]=abs(self.velocity[0])*-1
 
         vision_box = pygame.Rect(x, y, width, height)
         vision_box_surface = pygame.Surface((width, height)).convert_alpha()
         vision_box_surface.fill((250, 50, 50, 200))
-        # self.game.screen.blit(vision_box_surface, vision_box)
+        self.game.screen.blit(vision_box_surface, vision_box)
 
         if (not rect_collision(self.game.vandi.rect, self.rect)) and rect_collision(self.game.vandi.rect, vision_box):
             self.tracking=True

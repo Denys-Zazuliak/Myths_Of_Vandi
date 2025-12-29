@@ -88,10 +88,8 @@ class Game:
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:
-                    self.menu.pause = True
                 if event.key == pygame.K_ESCAPE:
-                    self.running = False
+                    self.menu.pause = True
 
         keys = pygame.key.get_pressed()
 
@@ -115,9 +113,8 @@ class Game:
         self.screen.fill((50, 50, 50))
         self.draw_grid()
 
-        if self.menu.load.active:
-            self.menu.loading()
-        elif self.level_count!=self.level_count_check:
+
+        if self.level_count!=self.level_count_check:
             self.level_count_check=self.level_count
             self.level_load()
 
@@ -427,11 +424,12 @@ class Menu:
             self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
             self.settings = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 150, f'assets/menu/buttons/settings.png', 0.2)
             self.load = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 50, f'assets/menu/buttons/load.png', 0.2)
-            self.buttons = [self.start, self.settings, self.load]
+            self.exit = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 150, f'assets/menu/buttons/exit.png', 0.2)
+            self.buttons = [self.start, self.settings, self.load, self.exit]
             title = Text('The Myths Of Vandi', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
-            # self.game.screen.blit(self.start_bg, self.start_bg_rect)
-            self.game.screen.fill((0, 0, 0))
+            self.game.screen.blit(self.start_bg, self.start_bg_rect)
+            # self.game.screen.fill((0, 0, 0))
             title.draw(self.game.screen)
             for button in self.buttons:
                 button.draw_and_collision(self.game.screen)
@@ -456,17 +454,22 @@ class Menu:
 
                 self.starting_menu_flag = False
 
+            if self.exit.active:
+                self.game.running = False
+                self.starting_menu_flag = False
+
     def pause_menu(self):
+        self.pause = True
         self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
         self.settings = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 150, f'assets/menu/buttons/settings.png', 0.2)
         self.save = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 50, f'assets/menu/buttons/save.png', 0.2)
         self.load = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 50, f'assets/menu/buttons/load.png', 0.2)
-        self.pause=True
-        self.buttons = [self.start, self.settings, self.save, self.load]
+        self.exit = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 150, f'assets/menu/buttons/exit.png', 0.2)
+        self.buttons = [self.start, self.settings, self.save, self.load, self.exit]
         paused=Text('Paused', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
-        # self.game.screen.blit(self.pause_bg, self.pause_bg_rect)
-        self.game.screen.fill((0, 0, 0))
+        self.game.screen.blit(self.pause_bg, self.pause_bg_rect)
+        # self.game.screen.fill((0, 0, 0))
         paused.draw(self.game.screen)
         for button in self.buttons:
             button.draw_and_collision(self.game.screen)
@@ -497,6 +500,10 @@ class Menu:
 
             self.pause = False
 
+        if self.exit.active:
+            self.game.running = False
+            self.pause=False
+
     def settings_menu(self):
         self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
         self.sounds_plus = Button((SCREEN_WIDTH // 2)+300, (SCREEN_HEIGHT // 2) - 175, f'assets/menu/buttons/plus.png', 0.25)
@@ -505,7 +512,8 @@ class Menu:
         settings = Text('Settings', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
         volume = Text(f'Volume: {int(self.game.volume*100)}', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 125))
 
-        self.game.screen.fill((0, 0, 0))
+        self.game.screen.blit(self.pause_bg, self.pause_bg_rect)
+        # self.game.screen.fill((0, 0, 0))
         settings.draw(self.game.screen)
         volume.draw(self.game.screen)
         for button in self.buttons:
