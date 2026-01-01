@@ -5,13 +5,13 @@
 # add docksins:
 """
 function's role
+
 Parameters
 ----------
 
 
 Returns
 -------
-
 
 """
 
@@ -29,15 +29,77 @@ FPS = 60
 INVULNERABILITY_TIME = 0.5
 
 class Game:
+    '''
+    The class that controls the game screen and behind the scenes processes such as:
+    drawing on the screen, taking input, updating different variables etc.
+
+    Attributes
+    ----------
+        screen : Surface
+            an instance of the screen class,
+            the place where all objects are displayed
+
+        font : Font
+            an instance of the font class,
+            tells the program whether the text is in bold, italic, strikethrough or underlined
+            In addition, it states the font and the size of text
+
+        menu : Menu
+            an instance of the menu class,
+            responsible for managing every single menu used in the game
+
+        running : bool
+            a variable that determines whether the game loop should carry on
+
+        volume : int
+            a variable responsible for the volume of the sounds and music in-game
+
+        gravity : int
+            a variable responsible for the strength of gravity in the game
+
+        level_count :
+            a variable used to determine what level the player is currently on
+
+        level_count_check : int
+            a flag made to check whether the level count has increased
+
+        screen_scroll : int
+            determines by how much should each object on the screen move in relation to the player's movement
+
+        world : World
+            an instance of the world class,
+            responsible for transformation of the level layout into a usable list of tiles
+
+        vandi : Player
+            an instance of the player class,
+            which the user controls
+
+        level : list
+            contains every single tile on a level
+
+
+    Methods
+    -------
+        setting_up():
+            
+
+        start_screen():
+        main_screen():
+        input_handling():
+        update(keys):
+        draw():
+        draw_grid():
+        draw_text(text, coordinates):
+        level_load():
+        endframe():
+    '''
     def __init__(self):
         # general setup
         self.setting_up()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))#, pygame.FULLSCREEN)
-        self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont("Arial", 20)
         self.menu = Menu(self)
         self.running = True
-        self.count = 1
         self.volume = 0.2
         self.gravity = 0.75
         self.level_count = 1
@@ -45,7 +107,7 @@ class Game:
         self.screen_scroll=0
         self.world = None
         self.vandi = None
-        self.level1 = None
+        self.level = None
 
         mixer.music.load('assets/audio/bell_ding.mp3')
         mixer.music.set_volume(self.volume)
@@ -122,7 +184,7 @@ class Game:
             shark.rect.x += self.screen_scroll
         self.world.sharks.draw(self.screen)
 
-        for tile in self.level1:
+        for tile in self.level:
             tile.img_rect.x=tile.img_rect.x+self.screen_scroll
             self.screen.blit(tile.img, tile.img_rect)
 
@@ -140,14 +202,13 @@ class Game:
         text.draw(self.screen)
 
     def level_load(self):
-        self.world, self.level1=load_levels(self.level_count, self)
+        self.world, self.level=load_levels(self.level_count, self)
         self.vandi = Player(TILE_SIZE * 6, TILE_SIZE * 9, self)
 
     def endframe(self):
         # updating display and game
         pygame.display.flip()
         self.clock.tick(FPS)
-        self.count += 1
 
 class Player:
     def __init__(self, x, y, game):
