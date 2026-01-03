@@ -275,19 +275,68 @@ class Player:
         height : int
             the height of the player rect
 
-        rect = self.img.get_rect(center=(x,y))
-        on_ground = False
-        velocity = [0, 0]
-        direction=0
-        attackHitbox = AttackHitbox(self)
-        health = 5
-        invulnerable = False
-        i_frames = 0
-        screen_scroll=0
-        bg_scroll=0
+        rect : Rect
+            an instance of the rect class,
+            this is a rectangle object that simulates the hitbox of a character
+
+        on_ground : bool
+            indicates whether the character is on the ground
+
+        velocity : list[int]
+            stores both components of the character's velocity (in pixels)
+
+        direction : int
+            shows which way the character is looking (1 means to the right, 0 means to the left)
+
+        attackHitbox : AttackHitbox
+            an instance of the attack hitbox class,
+            represents the hitbox of the character's attack
+
+        health : int
+            character's HP
+
+        invulnerable : bool
+            helps determine if the character should be able to get hit
+
+        i_frames : int
+            a counter of how many invincibility frames have passed
+
+        screen_scroll : int
+            indicates how much should every tile and object on the screen move by
+
+        bg_scroll : int
+            not implemented yet
+
 
     Methods
     -------
+        __init__(x, y, game):
+            constructs all the necessary attributes for the game class
+
+        move(keys, world):
+            repsonsible for moving the main character as well as managing the animation and screen movement
+
+        update():
+            applies gravity to the main character
+
+        jump():
+            gives the main character vertical velocity up which simulates jumping
+
+        attack():
+            displays the attack and progresses its animation
+
+        wall_collision():
+            checks collision with the borders of the screen, if the character is outside the screen, he dies
+
+        collision(world):
+            checks collision with every tile in the level
+
+        check_dead():
+            checks player's health and deletes the instance if the health is below zero
+
+        invulnerability_update():
+            increments the invincibility frame count and if it's larger than the invulnerability time,
+            the main character is hittable again
 
     """
 
@@ -457,9 +506,39 @@ class Player:
             self.i_frames = 0
 
 
-class AttackHitbox(pygame.sprite.Sprite):
+class AttackHitbox():
+    """
+    The class that controls the player's attack hitbox
+
+    Parameters
+    ----------
+        self.index : int
+            index of the hitbox's sprite image in the image list
+
+        self.images_right : list[Surface]
+            list of the hitbox sprites for when the attacker is going right
+
+        self.images_left : list[Surface]
+            list of the hitbox sprites for when attacker is going left
+
+        self.active : bool
+            determines whether the hitbox should be active or not
+
+        self.attacker : Player
+            player who initiated the attack
+
+        self.last_update : int
+
+
+        self.image = self.images_right[0]
+        self.rect = self.image.get_rect(midleft=self.attacker.rect.midright)
+
+    Returns
+    -------
+
+    """
+
     def __init__(self, attacker):
-        super().__init__()
         self.index = 0
         self.images_right = []
         self.images_left = []
