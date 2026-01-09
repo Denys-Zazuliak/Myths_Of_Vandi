@@ -10,7 +10,7 @@ Parameters
 ----------
 
 
-Returns
+Methods
 -------
 
 """
@@ -512,29 +512,42 @@ class AttackHitbox():
 
     Parameters
     ----------
-        self.index : int
+        index : int
             index of the hitbox's sprite image in the image list
 
-        self.images_right : list[Surface]
+        images_right : list[Surface]
             list of the hitbox sprites for when the attacker is going right
 
-        self.images_left : list[Surface]
+        images_left : list[Surface]
             list of the hitbox sprites for when attacker is going left
 
-        self.active : bool
+        active : bool
             determines whether the hitbox should be active or not
 
-        self.attacker : Player
+        attacker : Player
             player who initiated the attack
 
-        self.last_update : int
+        last_update : int
+            helps to enforce a cooldown on changing the attacks image
 
+        image : Surface
+            an instance of the surface class,
+            the current sprite of the attack
 
-        self.image = self.images_right[0]
-        self.rect = self.image.get_rect(midleft=self.attacker.rect.midright)
+        rect : Rect
+            an instance of the rect class,
+            this is a rectangle object that simulates the hitbox of the attack
 
-    Returns
+    Methods
     -------
+        __init__(attacker):
+            constructs all the necessary attributes for the game class
+
+        hit_collision():
+            checks collision with enemies to determine if they are hit
+
+        animation():
+            manages the animation (image updating) and updates the location of the attack0
 
     """
 
@@ -599,6 +612,24 @@ class AttackHitbox():
 
 
 class SpriteSheet:
+    """
+    A class to represent spritesheet images for enemies and the player
+
+    Parameters
+    ----------
+        image: Surface
+            an instance of the surface class,
+            an image that contains all the models for the character
+
+    Methods
+    -------
+        __init__(image):
+            constructs all the necessary attributes for the game class
+
+        get_image(frame_count, size, scale, colour):
+            outputs a formatted image from the spritesheet based on the inputs
+
+    """
     def __init__(self, image):
         self.sheet = image
 
@@ -774,6 +805,7 @@ class Menu:
     def loading(self):
         data = read_json('vandi')
         self.game.level_count = data['level_count']
+        self.game.level_count_check = 0
 
         if self.game.level_count != self.game.level_count_check:
             self.game.level_count_check = self.game.level_count
@@ -838,3 +870,6 @@ def write_json(data, file='Save'):
 if __name__ == '__main__':
     game = Game()
     game.start_screen()
+
+
+
