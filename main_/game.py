@@ -15,6 +15,45 @@ Returns
 
 """
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# should the documentation be more in past or future tense?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import pygame
 import json
 import time
@@ -656,8 +695,8 @@ class Menu:
             self.buttons = [self.start, self.settings, self.load, self.exit]
             title = Text('The Myths Of Vandi', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
-            self.game.screen.blit(self.start_bg, self.start_bg_rect)
-            # self.game.screen.fill((0, 0, 0))
+            # self.game.screen.blit(self.start_bg, self.start_bg_rect)
+            self.game.screen.fill((0, 0, 0))
             title.draw(self.game.screen)
             for button in self.buttons:
                 button.draw_and_collision(self.game.screen)
@@ -828,7 +867,7 @@ def read_json(file):
     return data
 
 
-def write_json(data, file='Save'):
+def write_json(data, file):
     file = file + '.json'
     with open(file, 'w') as json_file:
         json.dump(data, json_file, indent=2, separators=(", ", " : "), sort_keys=True)
