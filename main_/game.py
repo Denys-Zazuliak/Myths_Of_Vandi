@@ -1,5 +1,7 @@
 #AMONGUS
 
+# death screen
+
 # add wall jump (perchance)
 # add type ins (def function(num:int))
 # add docksins:
