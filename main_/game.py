@@ -176,6 +176,8 @@ class Game:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.menu.pause = True
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    self.vandi.not_press = True
 
         keys = pygame.key.get_pressed()
 
@@ -187,7 +189,7 @@ class Game:
         if keys[pygame.K_SPACE] and self.vandi.on_ground:
             self.vandi.jump()
 
-        self.vandi.wall_collision()
+        # self.vandi.wall_collision()
         self.vandi.attack()
 
         for enemy in self.world.sharks:
@@ -227,7 +229,7 @@ class Game:
 
     def level_load(self):
         self.world, self.level = load_levels(self.level_count, self)
-        self.vandi = Player(TILE_SIZE * 6, TILE_SIZE * 9, self)
+        self.vandi = Player(TILE_SIZE * 5, TILE_SIZE * 8, self)
 
     def endframe(self):
         # updating display and game
@@ -364,8 +366,9 @@ class Player:
         self.img = self.images_right[self.index]
         self.width = self.img.get_width()
         self.height = self.img.get_height()
-        self.rect = self.img.get_rect(center=(x, y))
-        # self.rect=pygame.Rect((x, y), (self.width//2, self.height))
+        # self.rect = self.img.get_rect(centerF=(x, y))
+        # self.rect=pygame.Rect(center=(x, y), size=(self.width//2, self.height))
+        self.rect = pygame.Rect(x, y, self.width // 4, self.height)
 
         self.on_ground = False
         self.velocity = [0, 0]
@@ -379,8 +382,11 @@ class Player:
         self.screen_scroll = 0
         self.bg_scroll = 0
 
+        self.last_update = 0
+        self.not_press = False
+
     def move(self, keys, world):
-        #movement
+        #movement part
         self.screen_scroll = 0
         self.velocity[0] = 0
         self.on_ground = False
@@ -392,16 +398,15 @@ class Player:
             self.velocity[0] = 5
 
         self.collision(world)
-        # self.wall_collisions()
         self.update()
         self.rect.move_ip(self.velocity[0], 0)
 
-        #camera scroll
+        #camera scroll part
         if self.rect.right > SCREEN_WIDTH - SCROLL_THRESH or self.rect.left < SCROLL_THRESH:
             self.rect.move_ip(-self.velocity[0], 0)
             self.screen_scroll = -self.velocity[0]
 
-        #animation
+        #animation part
         self.counter += 1
         if self.counter > 5:
             self.counter = 0
@@ -438,23 +443,33 @@ class Player:
         self.velocity[1] = -15
 
     def attack(self):
-        if pygame.mouse.get_pressed()[0] and self.attackHitbox.index < (len(self.attackHitbox.images_right) - 1):
-            self.attackHitbox.active = True
+        delay = 500
+        current_time = pygame.time.get_ticks()
+
+        if self.last_update == 0:
+            self.last_update = current_time
+
+        if current_time - self.last_update > delay:
+            if pygame.mouse.get_pressed()[0] and self.attackHitbox.index < (len(self.attackHitbox.images_right) - 1) and self.not_press == True:
+                self.attackHitbox.active = True
+                self.not_press = False
+
+            self.last_update = current_time
 
         if self.attackHitbox.active:
             self.game.screen.blit(self.attackHitbox.image, self.attackHitbox.rect)
             self.attackHitbox.animation()
             self.attackHitbox.hit_collision()
 
-    def wall_collision(self):
-        if self.rect.left < 0:
-            self.health = 0
-        if self.rect.right > SCREEN_WIDTH:
-            self.health = 0
-        if self.rect.top <= 0:
-            self.health = 0
-        if self.rect.bottom >= SCREEN_HEIGHT:
-            self.health = 0
+    # def wall_collision(self):
+    #     if self.rect.left < 0:
+    #         self.health = 0
+    #     if self.rect.right > SCREEN_WIDTH:
+    #         self.health = 0
+    #     if self.rect.top <= 0:
+    #         self.health = 0
+    #     if self.rect.bottom >= SCREEN_HEIGHT:
+    #         self.health = 0
 
     def collision(self, world):
         for tile in world.tile_list:
