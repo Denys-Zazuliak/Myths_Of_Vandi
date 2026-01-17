@@ -265,7 +265,7 @@ class Enemy(pygame.sprite.Sprite):
         vision_box = pygame.Rect(x, y, width, height)
         vision_box_surface = pygame.Surface((width, height)).convert_alpha()
         vision_box_surface.fill((250, 50, 50, 200))
-        self.game.screen.blit(vision_box_surface, vision_box)
+        # self.game.screen.blit(vision_box_surface, vision_box)
 
         if (not rect_collision(self.game.vandi.rect, self.rect)) and rect_collision(self.game.vandi.rect, vision_box):
             self.tracking=True
@@ -301,7 +301,8 @@ class Enemy(pygame.sprite.Sprite):
             self.game.vandi.invulnerable = True
             print(self.game.vandi.health)
             if self.game.vandi.check_dead():
-                print('Game Over')
+                # print('Game Over')
+                self.game.running = False
 
         self.game.vandi.invulnerability_update()
 
