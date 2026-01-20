@@ -383,7 +383,7 @@ class Player:
         self.bg_scroll = 0
 
         self.last_update = 0
-        self.not_press = False
+        self.not_press = True
 
     def move(self, keys, world):
         #movement part
@@ -453,8 +453,7 @@ class Player:
             if pygame.mouse.get_pressed()[0] and self.attackHitbox.index < (len(self.attackHitbox.images_right) - 1) and self.not_press == True:
                 self.attackHitbox.active = True
                 self.not_press = False
-
-            self.last_update = current_time
+                self.last_update = current_time
 
         if self.attackHitbox.active:
             self.game.screen.blit(self.attackHitbox.image, self.attackHitbox.rect)
