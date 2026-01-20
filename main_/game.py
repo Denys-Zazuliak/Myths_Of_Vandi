@@ -473,7 +473,6 @@ class Player:
 
     def collision(self, world):
         for tile in world.tile_list:
-            # vertical collision
             jump_rect = pygame.Rect((self.rect.x, self.rect.y + self.velocity[1]), (self.width, self.height))
 
             # check for end of level
@@ -492,6 +491,7 @@ class Player:
                     print('load next level')
 
             # regular collision
+            # vertical collision
             if rect_collision(tile.img_rect, jump_rect):
                 if self.velocity[1] < 0:
                     self.velocity[1] = tile.img_rect.bottom - self.rect.top + 1
