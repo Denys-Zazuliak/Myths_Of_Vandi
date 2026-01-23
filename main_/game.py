@@ -133,7 +133,7 @@ class Game:
         self.level_count_check = 0
         self.screen_scroll = 0
         self.world = None
-        self.vandi = None
+        self.vandi = self.vandi = Player(0,0, self)
         self.level = None
 
         mixer.music.load('assets/audio/bell_ding.mp3')
@@ -159,8 +159,10 @@ class Game:
         while self.running:
             keys = self.input_handling()
 
-            if self.menu.pause or self.menu.inventory:
+            if self.menu.pause:
                 self.menu.pause_menu()
+            elif self.menu.death_screen_flag:
+                self.menu.death_screen()
             else:
                 self.draw()
                 self.update(keys)
@@ -173,11 +175,11 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+            if event.type == pygame.MOUSEBUTTONUP:
+                    self.vandi.not_press = True
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.menu.pause = True
-                elif event.type == pygame.MOUSEBUTTONUP:
-                    self.vandi.not_press = True
 
         keys = pygame.key.get_pressed()
 
@@ -189,7 +191,7 @@ class Game:
         if keys[pygame.K_SPACE] and self.vandi.on_ground:
             self.vandi.jump()
 
-        # self.vandi.wall_collision()
+        self.vandi.wall_collision()
         self.vandi.attack()
 
         for enemy in self.world.sharks:
@@ -460,15 +462,17 @@ class Player:
             self.attackHitbox.animation()
             self.attackHitbox.hit_collision()
 
-    # def wall_collision(self):
-    #     if self.rect.left < 0:
-    #         self.health = 0
-    #     if self.rect.right > SCREEN_WIDTH:
-    #         self.health = 0
-    #     if self.rect.top <= 0:
-    #         self.health = 0
-    #     if self.rect.bottom >= SCREEN_HEIGHT:
-    #         self.health = 0
+    def wall_collision(self):
+        if self.rect.left < 0:
+            self.health = 0
+        if self.rect.right > SCREEN_WIDTH:
+            self.health = 0
+        if self.rect.top <= 0:
+            self.health = 0
+        if self.rect.bottom >= SCREEN_HEIGHT:
+            self.health = 0
+
+        self.check_dead()
 
     def collision(self, world):
         for tile in world.tile_list:
@@ -511,7 +515,7 @@ class Player:
     def check_dead(self):
         dead = False
         if self.health <= 0:
-            del self
+            self.game.menu.death_screen_flag = True
             dead = True
         return dead
 
@@ -684,10 +688,24 @@ class Menu:
         self.start_bg = pygame.image.load('assets/menu/peak.jpg')
         self.start_bg = pygame.transform.scale(self.start_bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.start_bg_rect = self.start_bg.get_rect()
+        self.death_bg = pygame.image.load('assets/menu/death_screen.jpg')
+        self.death_bg = pygame.transform.scale(self.death_bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.death_bg_rect = self.death_bg.get_rect()
+
+        self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
+        self.settings = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 150, f'assets/menu/buttons/settings.png', 0.2)
+        self.save = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 50, f'assets/menu/buttons/save.png', 0.2)
+        self.load = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 50, f'assets/menu/buttons/load.png', 0.2)
+        self.exit = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 150, f'assets/menu/buttons/exit.png', 0.2)
+        self.sounds_plus = Button((SCREEN_WIDTH // 2) + 300, (SCREEN_HEIGHT // 2) - 175,
+                                  f'assets/menu/buttons/plus.png', 0.25)
+        self.sounds_minus = Button((SCREEN_WIDTH // 2) + 300, (SCREEN_HEIGHT // 2) - 75,
+                                   f'assets/menu/buttons/minus.png', 0.25)
 
         self.starting_menu_flag = True
         self.settings_flag = False
-        self.inventory = False
+        self.death_screen_flag = False
+        self.inventory_flag = False
         self.pause = False
 
     def start_menu(self):
@@ -695,11 +713,6 @@ class Menu:
             self.settings_menu()
 
         else:
-            self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
-            self.settings = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 150, f'assets/menu/buttons/settings.png',
-                                   0.2)
-            self.load = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 50, f'assets/menu/buttons/load.png', 0.2)
-            self.exit = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 150, f'assets/menu/buttons/exit.png', 0.2)
             self.buttons = [self.start, self.settings, self.load, self.exit]
             title = Text('The Myths Of Vandi', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
@@ -707,24 +720,16 @@ class Menu:
             # self.game.screen.fill((0, 0, 0))
             title.draw(self.game.screen)
             for button in self.buttons:
+                button.collision = True
                 button.draw_and_collision(self.game.screen)
 
             if self.start.active:
-                for button in self.buttons:
-                    del button
-
                 self.starting_menu_flag = False
 
             if self.settings.active:
-                for button in self.buttons:
-                    del button
-
                 self.settings_flag = True
 
             if self.load.active:
-                for button in self.buttons:
-                    del button
-
                 self.loading()
 
                 self.starting_menu_flag = False
@@ -733,13 +738,11 @@ class Menu:
                 self.game.running = False
                 self.starting_menu_flag = False
 
+            for button in self.buttons:
+                button.collision=False
+
     def pause_menu(self):
         self.pause = True
-        self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
-        self.settings = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 150, f'assets/menu/buttons/settings.png', 0.2)
-        self.save = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 50, f'assets/menu/buttons/save.png', 0.2)
-        self.load = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 50, f'assets/menu/buttons/load.png', 0.2)
-        self.exit = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 150, f'assets/menu/buttons/exit.png', 0.2)
         self.buttons = [self.start, self.settings, self.save, self.load, self.exit]
         paused = Text('Paused', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
@@ -747,18 +750,13 @@ class Menu:
         # self.game.screen.fill((0, 0, 0))
         paused.draw(self.game.screen)
         for button in self.buttons:
+            button.collision = True
             button.draw_and_collision(self.game.screen)
 
         if self.start.active:
-            for button in self.buttons:
-                del button
-
             self.pause = False
 
         if self.settings.active:
-            for button in self.buttons:
-                del button
-
             self.settings_flag = True
 
         if self.settings_flag:
@@ -768,9 +766,6 @@ class Menu:
             self.saving()
 
         if self.load.active:
-            for button in self.buttons:
-                del button
-
             self.loading()
 
             self.pause = False
@@ -779,12 +774,10 @@ class Menu:
             self.game.running = False
             self.pause = False
 
+        for button in self.buttons:
+            button.collision = False
+
     def settings_menu(self):
-        self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 0.2)
-        self.sounds_plus = Button((SCREEN_WIDTH // 2) + 300, (SCREEN_HEIGHT // 2) - 175,
-                                  f'assets/menu/buttons/plus.png', 0.25)
-        self.sounds_minus = Button((SCREEN_WIDTH // 2) + 300, (SCREEN_HEIGHT // 2) - 75,
-                                   f'assets/menu/buttons/minus.png', 0.25)
         self.buttons = [self.start, self.sounds_plus, self.sounds_minus]
         settings = Text('Settings', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
         volume = Text(f'Volume: {int(self.game.volume * 100)}', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 125))
@@ -794,13 +787,11 @@ class Menu:
         settings.draw(self.game.screen)
         volume.draw(self.game.screen)
         for button in self.buttons:
+            button.collision = True
             button.draw_and_collision(self.game.screen)
             time.sleep(0.0228)
 
         if self.start.active:
-            for button in self.buttons:
-                del button
-
             self.settings_flag = False
             time.sleep(0.1)
 
@@ -812,8 +803,36 @@ class Menu:
             self.game.volume -= 0.1
             mixer.music.set_volume(self.game.volume)
 
-    def inventory(self):
-        pass
+        for button in self.buttons:
+            button.collision = False
+
+    def death_screen(self):
+        self.buttons = [self.settings, self.load, self.exit]
+        title = Text('Failure', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
+
+        self.game.screen.blit(self.death_bg, self.death_bg_rect)
+        # self.game.screen.fill((0, 0, 0))
+        title.draw(self.game.screen)
+        for button in self.buttons:
+            button.collision = True
+            button.draw_and_collision(self.game.screen)
+
+        if self.settings.active:
+            self.settings_flag = True
+        if self.settings_flag:
+            self.settings_menu()
+
+        if self.load.active:
+            self.loading()
+
+            self.death_screen_flag = False
+
+        if self.exit.active:
+            self.game.running = False
+            self.death_screen_flag = False
+
+        for button in self.buttons:
+            button.collision = False
 
     def saving(self):
         write_json({'name': 'Vandi', 'level_count': self.game.level_count}, 'vandi')
@@ -836,17 +855,17 @@ class Button:
         self.image = pygame.transform.scale(self.image, (int(width * scale), int(height * scale)))
         self.rect = self.image.get_rect(center=(x, y))
         self.active = False
+        self.collision = False
 
     def draw_and_collision(self, surface):
         surface.blit(self.image, (self.rect.x, self.rect.y))
 
         mouse_pos = pygame.mouse.get_pos()
 
-        if point_collision(mouse_pos, self.rect):
+        self.active = False
+        if point_collision(mouse_pos, self.rect) and self.collision:
             if pygame.mouse.get_pressed()[0] and not self.active:
                 self.active = True
-            if not pygame.mouse.get_pressed()[0]:
-                self.active = False
 
         return self.active
 
