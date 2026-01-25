@@ -17,45 +17,6 @@ Methods
 
 """
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# should the documentation be more in past or future tense?
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import pygame
 import json
 import time
@@ -241,6 +202,7 @@ class Game:
 
     def draw(self):
         self.screen.fill((50, 50, 50))
+        pygame.draw.rect(self.screen, (255, 255, 255), self.vandi.rect)
 
         if self.level_count != self.level_count_check:
             self.level_count_check = self.level_count
@@ -255,7 +217,7 @@ class Game:
             tile.img_rect.x = tile.img_rect.x + self.screen_scroll
             self.screen.blit(tile.img, tile.img_rect)
 
-        self.screen.blit(self.vandi.img, self.vandi.rect)
+        self.screen.blit(self.vandi.img, self.vandi.img_rect)
 
         self.draw_text(f'Health: {self.vandi.health}', (100, 20))
 
@@ -393,7 +355,7 @@ class Player:
 
         # change the image_size and scale
 
-        self.image_size = [64, 54]
+        self.image_size = [64, 52]
         self.walking_sprites = SpriteSheet(pygame.image.load('assets/vandi/walk.png').convert_alpha())
         self.animation_steps = 9
 
@@ -405,11 +367,15 @@ class Player:
 
         self.game = game
         self.img = self.images_right[self.index]
-        self.width = self.img.get_width()
+        self.width = self.img.get_width()//2.5
         self.height = self.img.get_height()
-        # self.rect = self.img.get_rect(centerF=(x, y))
-        # self.rect=pygame.Rect(center=(x, y), size=(self.width//2, self.height))
-        self.rect = pygame.Rect(x, y, self.width // 4, self.height)
+        # self.rect = self.img.get_rect(center=(x, y))
+        self.rect = pygame.Rect(0, 0, self.width, self.height)
+        self.rect.center = (x, y)
+
+        self.img_rect = self.img.get_rect()
+        self.img_rect.center = self.rect.center
+        # self.rect = pygame.Rect(x, y, self.width // 4, self.height)
 
         self.on_ground = False
         self.velocity = [0, 0]
@@ -441,10 +407,12 @@ class Player:
         self.collision(world)
         self.update()
         self.rect.move_ip(self.velocity[0], 0)
+        self.img_rect.move_ip(self.velocity[0], 0)
 
         #camera scroll part
         if self.rect.right > SCREEN_WIDTH - SCROLL_THRESH or self.rect.left < SCROLL_THRESH:
             self.rect.move_ip(-self.velocity[0], 0)
+            self.img_rect.move_ip(-self.velocity[0], 0)
             self.screen_scroll = -self.velocity[0]
 
         #animation part
@@ -478,6 +446,7 @@ class Player:
         if not self.on_ground:
             self.velocity[1] += game.gravity
         self.rect.move_ip(0, self.velocity[1])
+        self.img_rect.move_ip(0, self.velocity[1])
 
     def jump(self):
         self.on_ground = False
@@ -515,41 +484,34 @@ class Player:
 
     def collision(self, world):
         for tile in world.tile_list:
+            collided = False
             jump_rect = pygame.Rect((self.rect.x, self.rect.y + self.velocity[1]), (self.width, self.height))
 
-            # check for end of level
-            if 'finish' in tile.material:
-                if rect_collision(tile.img_rect, jump_rect):
-                    if self.velocity[1] < 0:
-                        self.game.level_count += 1
-                        print('load next level')
-                    elif self.velocity[1] > 0:
-                        self.game.level_count += 1
-                        print('load next level')
-
-                walking_rect = pygame.Rect(self.rect.x + self.velocity[0], self.rect.y, self.width, self.height)
-                if rect_collision(tile.img_rect, walking_rect):
-                    self.game.level_count += 1
-                    print('load next level')
-
-            # regular collision
             # vertical collision
             if rect_collision(tile.img_rect, jump_rect):
                 if self.velocity[1] < 0:
                     self.velocity[1] = tile.img_rect.bottom - self.rect.top + 1
                 elif self.velocity[1] > 0:
                     self.velocity[1] = tile.img_rect.top - self.rect.bottom - 1
+                collided=True
 
             #horizontal collision
             walking_rect = pygame.Rect(self.rect.x + self.velocity[0], self.rect.y, self.width, self.height)
             if rect_collision(tile.img_rect, walking_rect):
                 self.velocity[0] = 0
+                collided = True
 
             #gravity stuff
             gravity_rect = pygame.Rect(self.rect.x, self.rect.y + self.velocity[1] + game.gravity, self.width,
                                        self.height)
             if rect_collision(tile.img_rect, gravity_rect):
                 self.on_ground = True
+                collided = True
+
+            # check for end of level
+            if 'finish' in tile.material and collided:
+                self.game.level_count += 1
+                print('load next level')
 
     def check_dead(self):
         dead = False
