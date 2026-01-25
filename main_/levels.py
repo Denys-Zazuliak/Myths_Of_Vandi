@@ -79,6 +79,7 @@ LAYOUT3= [
 
 # make a level that goes from being up to going down
 
+# make world load recursive
 
 
 
@@ -302,7 +303,7 @@ class Enemy(pygame.sprite.Sprite):
             print(self.game.vandi.health)
             if self.game.vandi.check_dead():
                 # print('Game Over')
-                self.game.running = False
+                self.game.menu.death_screen_flag = True
 
         self.game.vandi.invulnerability_update()
 
