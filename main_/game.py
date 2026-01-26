@@ -22,6 +22,7 @@ import json
 import time
 from pygame import mixer
 from levels import load_levels
+from inventory import Inventory
 
 SCREEN_WIDTH = 1280  #1600
 SCREEN_HEIGHT = 960  #900
@@ -163,6 +164,8 @@ class Game:
                 self.menu.pause_menu()
             elif self.menu.death_screen_flag:
                 self.menu.death_screen()
+            elif self.menu.inventory_flag:
+                self.menu.inventory_menu()
             else:
                 self.draw()
                 self.update(keys)
@@ -180,6 +183,11 @@ class Game:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.menu.pause = True
+                if event.key == pygame.K_i:
+                    if not self.menu.inventory_flag:
+                        self.menu.inventory_flag = True
+                    else:
+                        self.menu.inventory_flag = False
 
         keys = pygame.key.get_pressed()
 
@@ -709,6 +717,8 @@ class Menu:
         self.inventory_flag = False
         self.pause = False
 
+        self.inventory = Inventory(27)
+
     def start_menu(self):
         if self.settings_flag:
             self.settings_menu()
@@ -834,6 +844,9 @@ class Menu:
 
         for button in self.buttons:
             button.collision = False
+
+    def inventory_menu(self):
+        self.inventory.draw(self.game.screen)
 
     def saving(self):
         write_json({'name': 'Vandi', 'level_count': self.game.level_count}, 'vandi')
