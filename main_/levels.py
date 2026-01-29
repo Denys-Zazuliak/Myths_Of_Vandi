@@ -1,4 +1,6 @@
 import pygame
+from random import randint
+from inventory import Item
 
 SCREEN_WIDTH = 1280 #1600
 SCREEN_HEIGHT = 960 #900
@@ -165,9 +167,6 @@ class World:
 
         return self.tile_list
 
-    def draw(self, screen):
-        pass
-
 class Tile:
     def __init__(self, image, x, y, material):
         self.img = pygame.transform.scale(image, (TILE_SIZE, TILE_SIZE))
@@ -241,8 +240,17 @@ class Enemy(pygame.sprite.Sprite):
     def check_dead(self):
         dead=False
         if self.health <= 0:
+
+            if randint(1, 100) >= 50:
+                drop = Item('spear', 'assets/items/spear.png')
+                drop.rect.center = self.rect.center
+                self.game.items.append(drop)
+                print('added item')
+
             del self
             dead=True
+            print('enemy dead')
+
         return dead
 
     def invulnerability_update(self):

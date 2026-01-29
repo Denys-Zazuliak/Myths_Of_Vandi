@@ -18,11 +18,11 @@ Methods
 """
 
 import pygame
-import json
 import time
 from pygame import mixer
+from utils import *
 from levels import load_levels
-from inventory import Inventory
+from inventory import Inventory, Item
 
 SCREEN_WIDTH = 1280  #1600
 SCREEN_HEIGHT = 960  #900
@@ -127,6 +127,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont("Arial", 20)
         self.menu = Menu(self)
+        self.items = []
         self.running = True
         self.volume = 0.2
         self.gravity = 0.75
@@ -134,8 +135,8 @@ class Game:
         self.level_count_check = 0
         self.screen_scroll = 0
         self.world = None
-        self.vandi = self.vandi = Player(0,0, self)
         self.level = None
+        self.vandi = self.vandi = Player(0,0, self)
 
         mixer.music.load('assets/audio/bell_ding.mp3')
         mixer.music.set_volume(self.volume)
@@ -224,6 +225,11 @@ class Game:
         for tile in self.level:
             tile.img_rect.x = tile.img_rect.x + self.screen_scroll
             self.screen.blit(tile.img, tile.img_rect)
+
+        for item in self.items:
+            item.rect.x = item.rect.x + self.screen_scroll
+            item.collision(self.world)
+            self.screen.blit(item.img, item.rect)
 
         self.screen.blit(self.vandi.img, self.vandi.img_rect)
 
@@ -718,6 +724,7 @@ class Menu:
         self.pause = False
 
         self.inventory = Inventory(27)
+        self.inventory.add(Item('spear', 'assets/items/spear.png'))
 
     def start_menu(self):
         if self.settings_flag:
@@ -757,8 +764,8 @@ class Menu:
         self.buttons = [self.start, self.settings, self.save, self.load, self.exit]
         paused = Text('Paused', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
-        self.game.screen.blit(self.pause_bg, self.pause_bg_rect)
-        # self.game.screen.fill((0, 0, 0))
+        # self.game.screen.blit(self.pause_bg, self.pause_bg_rect)
+        self.game.screen.fill((0, 0, 0))
         paused.draw(self.game.screen)
         for button in self.buttons:
             button.collision = True
@@ -793,8 +800,8 @@ class Menu:
         settings = Text('Settings', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
         volume = Text(f'Volume: {int(self.game.volume * 100)}', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 125))
 
-        self.game.screen.blit(self.pause_bg, self.pause_bg_rect)
-        # self.game.screen.fill((0, 0, 0))
+        # self.game.screen.blit(self.pause_bg, self.pause_bg_rect)
+        self.game.screen.fill((0, 0, 0))
         settings.draw(self.game.screen)
         volume.draw(self.game.screen)
         for button in self.buttons:
@@ -882,39 +889,6 @@ class Button:
                 self.active = True
 
         return self.active
-
-
-def rect_collision(rect1, rect2):
-    if rect1.right >= rect2.left and rect1.left <= rect2.right and rect1.bottom >= rect2.top and rect1.top <= rect2.bottom:
-        colliding = True
-    else:
-        colliding = False
-
-    return colliding
-
-
-def point_collision(point_pos, rect):
-    if point_pos[0] >= rect.left and point_pos[0] <= rect.right and point_pos[1] >= rect.top and point_pos[
-        1] <= rect.bottom:
-        colliding = True
-    else:
-        colliding = False
-    return colliding
-
-
-def read_json(file):
-    file = file + ".json"
-    with open(file) as json_file:
-        data = json.load(json_file)
-    return data
-
-
-def write_json(data, file):
-    file = file + '.json'
-    with open(file, 'w') as json_file:
-        json.dump(data, json_file, indent=2, separators=(", ", " : "), sort_keys=True)
-    return file
-
 
 if __name__ == '__main__':
     game = Game()
