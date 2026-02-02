@@ -242,7 +242,7 @@ class Enemy(pygame.sprite.Sprite):
         if self.health <= 0:
 
             if randint(1, 100) >= 50:
-                drop = Item('spear', 'assets/items/spear.png')
+                drop = Item('spear', 'assets/items/spear.png', 1)
                 drop.rect.center = self.rect.center
                 self.game.items.append(drop)
                 print('added item')

@@ -228,8 +228,12 @@ class Game:
 
         for item in self.items:
             item.rect.x = item.rect.x + self.screen_scroll
-            item.collision(self.world)
             self.screen.blit(item.img, item.rect)
+
+            # to avoid going through the list again
+            if rect_collision(item.rect, self.vandi.rect):
+                self.menu.inventory.add(item)
+                self.items.remove(item)
 
         self.screen.blit(self.vandi.img, self.vandi.img_rect)
 
@@ -613,7 +617,7 @@ class AttackHitbox():
     def hit_collision(self):
         for tile in self.attacker.game.world.sharks:
             if not tile.invulnerable and rect_collision(tile.rect, self.rect):
-                tile.health -= 1
+                tile.health -= self.attacker.game.menu.inventory.weapon.damage
                 tile.invulnerable = True
                 print(tile.health)
                 if tile.check_dead():
@@ -724,7 +728,6 @@ class Menu:
         self.pause = False
 
         self.inventory = Inventory(27)
-        self.inventory.add(Item('spear', 'assets/items/spear.png'))
 
     def start_menu(self):
         if self.settings_flag:
@@ -854,6 +857,16 @@ class Menu:
 
     def inventory_menu(self):
         self.inventory.draw(self.game.screen)
+
+        mouse_pos = pygame.mouse.get_pos()
+        surface = pygame.Surface((0,0)).convert_alpha()
+        surface.fill((0,0,0, 100))
+        rect=surface.get_rect()
+        rect.center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2)
+        for item in self.inventory.slots:
+            if item!=None:
+                if point_collision(mouse_pos, item.rect):
+                    self.game.screen.blit(surface, rect)
 
     def saving(self):
         write_json({'name': 'Vandi', 'level_count': self.game.level_count}, 'vandi')

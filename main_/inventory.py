@@ -7,21 +7,22 @@ SCREEN_WIDTH = 1280  #1600
 SCREEN_HEIGHT = 960  #900
 
 class Item:
-    def __init__(self, name, img):
+    def __init__(self, name, img, damage):
         self.name = name
         self.img = pygame.image.load(img).convert_alpha()
         self.img = pygame.transform.scale(self.img, slot_size)
         self.rect = self.img.get_rect()
+        self.damage=damage
 
     def draw(self, screen, x, y):
         screen.blit(self.img, (x, y))
 
-    def collision(self, world):
-        for tile in world.tile_list:
-            # vertical collision
-            gravity_rect = pygame.Rect((self.rect.x, self.rect.y + world.game.gravity), (self.rect.width, self.rect.height))
-            if not rect_collision(tile.img_rect, gravity_rect):
-                self.rect.y += world.game.gravity
+    # def collision(self, world):
+    #     for tile in world.tile_list:
+    #         # vertical collision
+    #         gravity_rect = pygame.Rect((self.rect.x, self.rect.y + world.game.gravity), (self.rect.width, self.rect.height))
+    #         if not rect_collision(tile.img_rect, gravity_rect):
+    #             self.rect.y += world.game.gravity
 
 class Inventory:
     def __init__(self, max_size, slots=None):
@@ -40,6 +41,8 @@ class Inventory:
         self.slot_image = pygame.image.load('assets/menu/slot_image.png').convert_alpha()
         self.slot_image = pygame.transform.scale(self.slot_image, slot_size)
 
+        self.weapon=Item('spear', 'assets/items/spear.png', 1)
+
     def add(self, item):
         free = False
         index = 0
@@ -53,6 +56,7 @@ class Inventory:
                     index += 1
             else:
                 print('inventory full')
+                break
 
     def remove(self, item):
         for slot in self.slots:
@@ -99,3 +103,6 @@ class Inventory:
             full = False
 
         return full
+
+    def equip(self, new_weapon):
+        self.weapon = new_weapon
