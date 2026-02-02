@@ -51,6 +51,8 @@ class Inventory:
             if not self.is_full():
                 if not self.occupied(self.slots[index]):
                     free = True
+                    item.rect.y = SCREEN_HEIGHT//2
+                    item.rect.x = SCREEN_WIDTH // 2
                     self.slots[index] = item
                 else:
                     index += 1

@@ -1,7 +1,7 @@
 import pygame
 from random import randint
 from inventory import Item
-
+#
 SCREEN_WIDTH = 1280 #1600
 SCREEN_HEIGHT = 960 #900
 TILE_SIZE = 64 #50
