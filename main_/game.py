@@ -226,6 +226,7 @@ class Game:
             tile.img_rect.x = tile.img_rect.x + self.screen_scroll
             self.screen.blit(tile.img, tile.img_rect)
 
+        #dropped item
         for item in self.items:
             item.rect.x = item.rect.x + self.screen_scroll
             self.screen.blit(item.img, item.rect)
@@ -694,7 +695,7 @@ class Text:
     #     surface.blit(temp_surface, (0, 0))
 
     def draw(self, surface):
-        pos = self.text_rect.x, self.text_rect.y
+        pos = (self.text_rect.x, self.text_rect.y)
         surface.blit(self.text, pos)
 
 
@@ -725,9 +726,16 @@ class Menu:
         self.settings_flag = False
         self.death_screen_flag = False
         self.inventory_flag = False
+        self.tooltip_flag=False
         self.pause = False
 
         self.inventory = Inventory(27)
+        self.inventory.add(Item('spear', 'assets/items/spear.png', 1))
+
+        self.tooltip_surf = pygame.Surface((500,100), pygame.SRCALPHA)
+        self.tooltip_surf.fill((255,255,255,100))
+        self.tooltip_rect = self.tooltip_surf.get_rect()
+        self.tooltip_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
 
     def start_menu(self):
         if self.settings_flag:
@@ -856,17 +864,22 @@ class Menu:
             button.collision = False
 
     def inventory_menu(self):
+        self.game.screen.fill((0,0,0))
         self.inventory.draw(self.game.screen)
 
         mouse_pos = pygame.mouse.get_pos()
-        surface = pygame.Surface((0,0)).convert_alpha()
-        surface.fill((0,0,0, 100))
-        rect=surface.get_rect()
-        rect.center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2)
         for item in self.inventory.slots:
             if item!=None:
                 if point_collision(mouse_pos, item.rect):
-                    self.game.screen.blit(surface, rect)
+                    self.tooltip_flag=True
+                    self.tooltip_text = Text(item.details(), 50, self.tooltip_rect.topleft, (255,255,255))
+                    break
+                else:
+                    self.tooltip_flag=False
+
+        if self.tooltip_flag:
+            self.tooltip_text.draw(self.tooltip_surf)
+            self.game.screen.blit(self.tooltip_surf, self.tooltip_rect)
 
     def saving(self):
         write_json({'name': 'Vandi', 'level_count': self.game.level_count}, 'vandi')
@@ -906,6 +919,3 @@ class Button:
 if __name__ == '__main__':
     game = Game()
     game.start_screen()
-
-
-

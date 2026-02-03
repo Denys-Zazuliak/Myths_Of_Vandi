@@ -17,6 +17,9 @@ class Item:
     def draw(self, screen, x, y):
         screen.blit(self.img, (x, y))
 
+    def details(self):
+        return f'Name: {self.name}\nDamage: {self.damage}'
+
     # def collision(self, world):
     #     for tile in world.tile_list:
     #         # vertical collision
@@ -51,8 +54,6 @@ class Inventory:
             if not self.is_full():
                 if not self.occupied(self.slots[index]):
                     free = True
-                    item.rect.y = SCREEN_HEIGHT//2
-                    item.rect.x = SCREEN_WIDTH // 2
                     self.slots[index] = item
                 else:
                     index += 1
@@ -79,6 +80,7 @@ class Inventory:
 
             if self.occupied(slot):
                 screen.blit(slot.img, (x, y))
+                slot.rect.topleft=(x,y)
 
             if column>=item_per_row:
                 row+=1
