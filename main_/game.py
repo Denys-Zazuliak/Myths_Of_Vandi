@@ -245,9 +245,12 @@ class Game:
     #         pygame.draw.line(self.screen, (255, 255, 255), (0, line * TILE_SIZE), (SCREEN_WIDTH, line * TILE_SIZE))
     #         pygame.draw.line(self.screen, (255, 255, 255), (line * TILE_SIZE, 0), (line * TILE_SIZE, SCREEN_HEIGHT))
 
-    def draw_text(self, text, coordinates):
+    def draw_text(self, text, coordinates, screen=None):
+        if screen==None:
+            screen = self.screen
+
         text = Text(text, 50, coordinates)
-        text.draw(self.screen)
+        text.draw(screen)
 
     def level_load(self):
         self.world, self.level = load_levels(self.level_count, self)
@@ -684,9 +687,15 @@ class SpriteSheet:
 
 class Text:
     def __init__(self, text, size, coordinates, colour=(255, 255, 255)):
+        if '\n' in text:
+            self.lines = text.split("\n")
+        else:
+            self.lines = None
+
         self.font = pygame.font.SysFont('Arial', size)
         self.text = self.font.render(text, True, colour)
-        self.text_rect = self.text.get_rect(center=coordinates)
+        self.coordinates = coordinates
+        self.text_rect = self.text.get_rect(center=self.coordinates)
 
     # def draw(self, surface):
     #     temp_surface = pygame.Surface(self.text.get_size())
@@ -695,8 +704,16 @@ class Text:
     #     surface.blit(temp_surface, (0, 0))
 
     def draw(self, surface):
-        pos = (self.text_rect.x, self.text_rect.y)
-        surface.blit(self.text, pos)
+        if self.lines!=None:
+            x, y = self.coordinates[0], self.coordinates[1]
+            line_height = self.font.get_height()
+
+            for i, line in enumerate(self.lines):
+                rendered_line = self.font.render(line, True, (255, 255, 255))
+                surface.blit(rendered_line, (x, y + i * line_height))
+
+        # pos = (self.text_rect.x, self.text_rect.y)
+        # surface.blit(self.text, pos)
 
 
 class Menu:
@@ -732,7 +749,7 @@ class Menu:
         self.inventory = Inventory(27)
         self.inventory.add(Item('spear', 'assets/items/spear.png', 1))
 
-        self.tooltip_surf = pygame.Surface((500,100), pygame.SRCALPHA)
+        self.tooltip_surf = pygame.Surface((500,200), pygame.SRCALPHA).convert_alpha()
         self.tooltip_surf.fill((255,255,255,100))
         self.tooltip_rect = self.tooltip_surf.get_rect()
         self.tooltip_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
@@ -872,7 +889,7 @@ class Menu:
             if item!=None:
                 if point_collision(mouse_pos, item.rect):
                     self.tooltip_flag=True
-                    self.tooltip_text = Text(item.details(), 50, self.tooltip_rect.topleft, (255,255,255))
+                    self.tooltip_text = Text(item.details(), 50, ((SCREEN_WIDTH // 2-self.tooltip_rect.center[0], SCREEN_HEIGHT // 2-self.tooltip_rect.center[1])), (255,255,255))
                     break
                 else:
                     self.tooltip_flag=False

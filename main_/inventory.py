@@ -18,7 +18,7 @@ class Item:
         screen.blit(self.img, (x, y))
 
     def details(self):
-        return f'Name: {self.name}\nDamage: {self.damage}'
+        return f"""Name: {self.name}\nDamage: {self.damage}"""
 
     # def collision(self, world):
     #     for tile in world.tile_list:
