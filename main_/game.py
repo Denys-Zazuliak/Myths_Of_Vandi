@@ -220,6 +220,10 @@ class Game:
         #draw the updated tiles and enemies
         for shark in self.world.sharks:
             shark.rect.x += self.screen_scroll
+            if shark.name=='goblin':
+                # surf=pygame.Surface((64,128), pygame.SRCALPHA)
+                # surf.fill((255,255,255))
+                self.screen.blit(shark.image, shark.rect)
         self.world.sharks.draw(self.screen)
 
         for tile in self.level:
@@ -679,9 +683,9 @@ class Text:
             for i, line in enumerate(self.lines):
                 rendered_line = self.font.render(line, True, (255, 255, 255))
                 surface.blit(rendered_line, (x, y + i * line_height))
-
-        # pos = (self.text_rect.x, self.text_rect.y)
-        # surface.blit(self.text, pos)
+        else:
+            pos = (self.text_rect.x, self.text_rect.y)
+            surface.blit(self.text, pos)
 
 
 class Menu:
@@ -766,7 +770,7 @@ class Menu:
             button.collision = True
             button.draw_and_collision(self.game.screen)
 
-        if self.start.active:
+        if self.start.active and not self.settings_flag:
             self.pause = False
 
         if self.settings.active:
@@ -809,15 +813,18 @@ class Menu:
             time.sleep(0.1)
 
         if self.sounds_plus.active:
-            self.game.volume += 0.1
+            if self.game.volume + 0.1 <= 1:
+                self.game.volume += 0.1
             mixer.music.set_volume(self.game.volume)
 
         if self.sounds_minus.active:
-            self.game.volume -= 0.1
+            if self.game.volume - 0.1 >= 0:
+                self.game.volume -= 0.1
             mixer.music.set_volume(self.game.volume)
 
         for button in self.buttons:
             button.collision = False
+            button.active = False
 
     def death_screen(self):
         self.buttons = [self.settings, self.load, self.exit]

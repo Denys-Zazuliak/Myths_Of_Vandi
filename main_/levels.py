@@ -53,7 +53,7 @@ LAYOUT3= [
     ['M65'],
     ['M1', 'A63', 'M1'],
     ['M1', 'A63', 'M1'],
-    ['M1', 'G1', 'A62', 'M1'],
+    ['M1', 'A12', 'G1', 'A50', 'M1'],
     ['M1', 'A63', 'M1'],
     ['M1', 'A63', 'M1'],
     ['M1', 'A63', 'M1'],
@@ -114,14 +114,17 @@ LAYOUT3= [
 def load_levels(level_count, game):
     if level_count == 1:
         world = World(LAYOUT1, game)
+        game.items=[]
         level = world.load_level()
 
     elif level_count == 2:
         world = World(LAYOUT2, game)
+        game.items = []
         level = world.load_level()
 
     elif level_count == 3:
         world = World(LAYOUT3, game)
+        game.items = []
         level = world.load_level()
 
     return world, level
@@ -206,6 +209,7 @@ class Tile:
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y, name, size_scale, game, spritesheet=None):
         pygame.sprite.Sprite.__init__(self)
+        self.name = name
 
         self.images_right = []
         self.images_left = []
@@ -219,14 +223,14 @@ class Enemy(pygame.sprite.Sprite):
             self.animation_steps = 6
 
             for i in range(self.animation_steps):
-                img = self.walking_sprites.get_image(i, self.image_size, 1/12, (0, 0, 0)).convert_alpha()
+                img = self.walking_sprites.get_image(i, self.image_size, size_scale, (0, 0, 0)).convert_alpha()
                 self.images_right.append(img)
                 img_left = pygame.transform.flip(img, True, False)
                 self.images_left.append(img_left)
 
         else:
             for i in range(1, 3):
-                img = pygame.image.load(f'assets/enemy/idle/{name}{i}.png').convert_alpha()
+                img = pygame.image.load(f'assets/enemy/idle/{self.name}{i}.png').convert_alpha()
                 img = pygame.transform.scale(img,  (img.get_width()*size_scale, img.get_height()*size_scale))
                 self.images_right.append(img)
                 img_left = pygame.transform.flip(img, True, False)
