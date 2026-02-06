@@ -747,10 +747,9 @@ class Menu:
         self.pause = False
 
         self.inventory = Inventory(27)
-        self.inventory.add(Item('spear', 'assets/items/spear.png', 1))
+        self.inventory.add(Item('spear', 'assets/items/spear.png', 5))
 
         self.tooltip_surf = pygame.Surface((500,200), pygame.SRCALPHA).convert_alpha()
-        self.tooltip_surf.fill((255,255,255,100))
         self.tooltip_rect = self.tooltip_surf.get_rect()
         self.tooltip_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
 
@@ -887,6 +886,9 @@ class Menu:
         mouse_pos = pygame.mouse.get_pos()
         for item in self.inventory.slots:
             if item!=None:
+                if point_collision(mouse_pos, item.rect) and pygame.mouse.get_pressed()[0]:
+                    self.inventory.equip(item)
+
                 if point_collision(mouse_pos, item.rect):
                     self.tooltip_flag=True
                     self.tooltip_text = Text(item.details(), 50, ((SCREEN_WIDTH // 2-self.tooltip_rect.center[0], SCREEN_HEIGHT // 2-self.tooltip_rect.center[1])), (255,255,255))
@@ -895,6 +897,7 @@ class Menu:
                     self.tooltip_flag=False
 
         if self.tooltip_flag:
+            self.tooltip_surf.fill((255,255,255,100))
             self.tooltip_text.draw(self.tooltip_surf)
             self.game.screen.blit(self.tooltip_surf, self.tooltip_rect)
 

@@ -50,7 +50,7 @@ LAYOUT2 = [
 # TUTORIAL LEVEL
 LAYOUT3= [
     ['M65'],
-    ['M1', 'A63', 'M1'],
+    ['M1', 'G1', 'A62', 'M1'],
     ['M1', 'A63', 'M1'],
     ['M1', 'A63', 'M1'],
     ['M1', 'A63', 'M1'],
@@ -159,6 +159,12 @@ class World:
 
                     self.tile_count += 1
 
+                if tile[0]=='G':
+                    goblin = Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'goblin', 0.5, self.game)
+                    self.sharks.add(goblin)
+
+                    self.tile_count += 1
+
                 if tile[0]=='F':
                     for i in range(int(tile[1:])):
                         tile_load(self, self.finish, 'finish')
@@ -240,18 +246,26 @@ class Enemy(pygame.sprite.Sprite):
     def check_dead(self):
         dead=False
         if self.health <= 0:
-
-            if randint(1, 100) >= 50:
-                drop = Item('spear', 'assets/items/spear.png', 1)
-                drop.rect.center = self.rect.center
-                self.game.items.append(drop)
-                print('added item')
+            self.item_drops()
 
             del self
             dead=True
             print('enemy dead')
 
         return dead
+
+    def item_drops(self):
+        if randint(1, 100) >= 50:
+            if randint(1, 100) >= 95:
+                drop = Item('spear', 'assets/items/spear.png', randint(1, 3))
+                drop.rect.center = self.rect.center
+                self.game.items.append(drop)
+                print('added strong item')
+            else:
+                drop = Item('spear', 'assets/items/spear.png', randint(1, 1))
+                drop.rect.center = self.rect.center
+                self.game.items.append(drop)
+                print('added item')
 
     def invulnerability_update(self):
         self.i_frames += 1
