@@ -1,7 +1,8 @@
 import pygame
 from random import randint
 from inventory import Item
-#
+from utils import *
+
 SCREEN_WIDTH = 1280 #1600
 SCREEN_HEIGHT = 960 #900
 TILE_SIZE = 64 #50
@@ -50,9 +51,9 @@ LAYOUT2 = [
 # TUTORIAL LEVEL
 LAYOUT3= [
     ['M65'],
+    ['M1', 'A63', 'M1'],
+    ['M1', 'A63', 'M1'],
     ['M1', 'G1', 'A62', 'M1'],
-    ['M1', 'A63', 'M1'],
-    ['M1', 'A63', 'M1'],
     ['M1', 'A63', 'M1'],
     ['M1', 'A63', 'M1'],
     ['M1', 'A63', 'M1'],
@@ -70,7 +71,27 @@ LAYOUT3= [
 
 
 
-
+# level_dict={
+#     1:[
+#     ['B20'],
+#     ['B1', 'A17', 'M1', 'B1'],
+#     ['B1', 'A18', 'B1'],
+#     ['B1', 'A18', 'B1'],
+#     ['B1', 'A18', 'B1'],
+#     ['B1', 'A9','S1','A8', 'B1'],
+#     # ['B1', 'A18', 'B1'],
+#     ['B1', 'A9', 'B1', 'A8', 'B1'],
+#     ['B1', 'A18', 'B1'],
+#     ['B1', 'A18', 'B1'],
+#     ['B1', 'A18', 'B1'],
+#     ['B5', 'A13', 'S1', 'B1'],
+#     ['A16', 'B4'],
+#     ['A15', 'B5'],
+#     ['A8', 'S1', 'A5', 'F1', 'B5'],
+#     ['A3', 'B17'],
+# ],
+#     2:
+# }
 
 
 
@@ -160,7 +181,7 @@ class World:
                     self.tile_count += 1
 
                 if tile[0]=='G':
-                    goblin = Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'goblin', 0.5, self.game)
+                    goblin = Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'goblin', 2, self.game, f'assets/enemy/goblin_walk.png')
                     self.sharks.add(goblin)
 
                     self.tile_count += 1
@@ -183,19 +204,33 @@ class Tile:
         self.material = material
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, x, y, name, size_scale, game):
+    def __init__(self, x, y, name, size_scale, game, spritesheet=None):
         pygame.sprite.Sprite.__init__(self)
 
         self.images_right = []
         self.images_left = []
         self.index = 0
         self.counter = 0
-        for i in range(1, 3):
-            img = pygame.image.load(f'assets/enemy/idle/{name}{i}.png').convert_alpha()
-            img = pygame.transform.scale(img,  (img.get_width()*size_scale, img.get_height()*size_scale))
-            self.images_right.append(img)
-            img_left = pygame.transform.flip(img, True, False)
-            self.images_left.append(img_left)
+
+        if spritesheet!=None:
+            self.spritesheet = pygame.image.load(spritesheet)
+            self.image_size = [42, 37]
+            self.walking_sprites = SpriteSheet(pygame.image.load(spritesheet).convert_alpha())
+            self.animation_steps = 6
+
+            for i in range(self.animation_steps):
+                img = self.walking_sprites.get_image(i, self.image_size, 1/12, (0, 0, 0)).convert_alpha()
+                self.images_right.append(img)
+                img_left = pygame.transform.flip(img, True, False)
+                self.images_left.append(img_left)
+
+        else:
+            for i in range(1, 3):
+                img = pygame.image.load(f'assets/enemy/idle/{name}{i}.png').convert_alpha()
+                img = pygame.transform.scale(img,  (img.get_width()*size_scale, img.get_height()*size_scale))
+                self.images_right.append(img)
+                img_left = pygame.transform.flip(img, True, False)
+                self.images_left.append(img_left)
 
         self.game = game
         self.image = self.images_right[self.index]

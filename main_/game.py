@@ -653,38 +653,6 @@ class AttackHitbox():
             self.rect.right = self.attacker.rect.left
             self.rect.y = self.attacker.rect.top
 
-
-class SpriteSheet:
-    """
-    A class to represent spritesheet images for enemies and the player
-
-    Parameters
-    ----------
-        image: Surface
-            an instance of the surface class,
-            an image that contains all the models for the character
-
-    Methods
-    -------
-        __init__(image):
-            constructs all the necessary attributes for the game class
-
-        get_image(frame_count, size, scale, colour):
-            outputs a formatted image from the spritesheet based on the inputs
-
-    """
-    def __init__(self, image):
-        self.sheet = image
-
-    def get_image(self, frame_count, size, scale, colour):
-        img = pygame.Surface((size[0], size[1])).convert_alpha()
-        img.blit(self.sheet, (0, 0), (frame_count * size[0], 0, size[0], size[1]))
-        img = pygame.transform.scale(img, (size[0] * scale, size[1] * scale))
-        img.set_colorkey(colour)
-
-        return img
-
-
 class Text:
     def __init__(self, text, size, coordinates, colour=(255, 255, 255)):
         if '\n' in text:
