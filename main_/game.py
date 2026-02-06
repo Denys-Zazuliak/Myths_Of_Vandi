@@ -893,11 +893,12 @@ class Menu:
             self.game.screen.blit(self.tooltip_surf, self.tooltip_rect)
 
     def saving(self):
-        write_json({'name': 'Vandi', 'level_count': self.game.level_count}, 'vandi')
+        write_json({'name': 'Vandi', 'level_count': self.game.level_count, 'inventory': self.game.menu.inventory.slots}, 'vandi')
         self.saved=10
 
     def loading(self):
         data = read_json('vandi')
+        self.inventory.slots=data['inventory']
         self.game.level_count = data['level_count']
         self.game.level_count_check = 0
 
