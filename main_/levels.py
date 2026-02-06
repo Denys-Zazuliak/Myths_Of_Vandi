@@ -178,13 +178,13 @@ class World:
 
                 if tile[0]=='S':
                     # (TILE_SIZE * self.row_count - ((TILE_SIZE * (self.row_count)) - (TILE_SIZE * (self.row_count + 1))))
-                    shark=Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'shark', 2, self.game)
+                    shark=Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'shark', 2, self.game, 3, 1)
                     self.sharks.add(shark)
 
                     self.tile_count += 1
 
                 if tile[0]=='G':
-                    goblin = Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'goblin', 2, self.game, f'assets/enemy/goblin_walk.png')
+                    goblin = Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'goblin', 2, self.game, 5, 2, f'assets/enemy/goblin_walk.png')
                     self.sharks.add(goblin)
 
                     self.tile_count += 1
@@ -207,7 +207,7 @@ class Tile:
         self.material = material
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, x, y, name, size_scale, game, spritesheet=None):
+    def __init__(self, x, y, name, size_scale, game, health, damage, spritesheet=None):
         pygame.sprite.Sprite.__init__(self)
         self.name = name
 
@@ -246,7 +246,8 @@ class Enemy(pygame.sprite.Sprite):
         self.distance_tracker = 0
         self.tracking = False
 
-        self.health=3
+        self.health=health
+        self.damage=damage
         self.invulnerable=False
         self.i_frames=0
 
@@ -359,7 +360,7 @@ class Enemy(pygame.sprite.Sprite):
             self.tracking=False
 
         if not self.game.vandi.invulnerable and rect_collision(self.game.vandi.rect, self.rect):
-            self.game.vandi.health -= 1
+            self.game.vandi.health -= self.damage
             self.game.vandi.invulnerable = True
             print(self.game.vandi.health)
             if self.game.vandi.check_dead():

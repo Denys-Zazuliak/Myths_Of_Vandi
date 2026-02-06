@@ -200,6 +200,10 @@ class Game:
         if keys[pygame.K_SPACE] and self.vandi.on_ground:
             self.vandi.jump()
 
+        if keys[pygame.K_SPACE] and self.vandi.air_jumps > 0 and self.vandi.wall_collided:
+            self.vandi.jump()
+            self.vandi.air_jumps -= 1
+
         self.vandi.wall_collision()
         self.vandi.attack()
 
@@ -211,7 +215,7 @@ class Game:
 
     def draw(self):
         self.screen.fill((50, 50, 50))
-        pygame.draw.rect(self.screen, (255, 255, 255), self.vandi.rect)
+        # pygame.draw.rect(self.screen, (255, 255, 255), self.vandi.rect)
 
         if self.level_count != self.level_count_check:
             self.level_count_check = self.level_count
@@ -379,6 +383,9 @@ class Player:
         self.index = 0
         self.counter = 0
 
+        self.wall_collided = False
+        self.air_jumps = 1
+
         # change the image_size and scale
 
         self.image_size = [64, 52]
@@ -509,6 +516,7 @@ class Player:
         self.check_dead()
 
     def collision(self, world):
+        self.wall_collided = False
         for tile in world.tile_list:
             collided = False
             jump_rect = pygame.Rect((self.rect.x, self.rect.y + self.velocity[1]), (self.width, self.height))
@@ -526,12 +534,14 @@ class Player:
             if rect_collision(tile.img_rect, walking_rect):
                 self.velocity[0] = 0
                 collided = True
+                self.wall_collided = True
 
             #gravity stuff
             gravity_rect = pygame.Rect(self.rect.x, self.rect.y + self.velocity[1] + game.gravity, self.width,
                                        self.height)
             if rect_collision(tile.img_rect, gravity_rect):
                 self.on_ground = True
+                self.air_jumps = 1
                 collided = True
 
             # check for end of level
@@ -604,7 +614,7 @@ class AttackHitbox():
         self.images_left = []
         for i in range(1, 7):
             img = pygame.image.load(f'assets/attack/attack{i}.png').convert_alpha()
-            img = pygame.transform.rotate(img, -150)
+            img = pygame.transform.rotate(img, -180)
             img = pygame.transform.scale(img, (img.get_width(), img.get_height()))
             self.images_right.append(img)
             img_left = pygame.transform.flip(img, True, False)
@@ -717,6 +727,7 @@ class Menu:
         self.inventory_flag = False
         self.tooltip_flag=False
         self.pause = False
+        self.saved=0
 
         self.inventory = Inventory(27)
         self.inventory.add(Item('spear', 'assets/items/spear.png', 5))
@@ -781,6 +792,11 @@ class Menu:
 
         if self.save.active:
             self.saving()
+
+        if self.saved*FPS>0:
+            text = Text('Saved Successfully', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 400))
+            text.draw(self.game.screen)
+            self.saved-=1
 
         if self.load.active:
             self.loading()
@@ -878,6 +894,7 @@ class Menu:
 
     def saving(self):
         write_json({'name': 'Vandi', 'level_count': self.game.level_count}, 'vandi')
+        self.saved=10
 
     def loading(self):
         data = read_json('vandi')
