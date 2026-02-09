@@ -13,3 +13,4 @@ the controls are:
 
         LEFT MOUSE BUTTON - equip
         RIGHT MOUSE BUTTON - drop
+        I - close inventory

@@ -200,6 +200,7 @@ class Game:
         if keys[pygame.K_SPACE] and self.vandi.on_ground:
             self.vandi.jump()
 
+        # wall jumps
         if keys[pygame.K_SPACE] and self.vandi.air_jumps > 0 and self.vandi.wall_collided:
             self.vandi.jump()
             self.vandi.air_jumps -= 1
@@ -527,6 +528,7 @@ class Player:
                     self.velocity[1] = tile.img_rect.bottom - self.rect.top + 1
                 elif self.velocity[1] > 0:
                     self.velocity[1] = tile.img_rect.top - self.rect.bottom - 1
+                    self.air_jumps = 1
                 collided=True
 
             #horizontal collision
@@ -537,8 +539,7 @@ class Player:
                 self.wall_collided = True
 
             #gravity stuff
-            gravity_rect = pygame.Rect(self.rect.x, self.rect.y + self.velocity[1] + game.gravity, self.width,
-                                       self.height)
+            gravity_rect = pygame.Rect(self.rect.x, self.rect.y + self.velocity[1] + game.gravity, self.width, self.height)
             if rect_collision(tile.img_rect, gravity_rect):
                 self.on_ground = True
                 self.air_jumps = 1
@@ -744,8 +745,8 @@ class Menu:
             self.buttons = [self.start, self.settings, self.load, self.exit]
             title = Text('The Myths Of Vandi', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
-            # self.game.screen.blit(self.start_bg, self.start_bg_rect)
-            self.game.screen.fill((0, 0, 0))
+            self.game.screen.blit(self.start_bg, self.start_bg_rect)
+            # self.game.screen.fill((0, 0, 0))
             title.draw(self.game.screen)
             for button in self.buttons:
                 button.collision = True
@@ -901,14 +902,17 @@ class Menu:
         item_list=[]
         for item in self.inventory.slots:
             if item != None:
-                item_list.append([{'name': item.name, 'img_path': item.img_path, 'damage': item.damage}])
-        write_json({'name': 'Vandi', 'level_count': self.game.level_count, 'inventory': item_list}, 'vandi')
+                item_list.append({'name': item.name, 'img_path': item.img_path, 'damage': item.damage})
+        write_json({'name': 'Vandi', 'level_count': self.game.level_count, 'inventory': item_list, 'weapon': {'name': self.inventory.weapon.name, 'img_path': self.inventory.weapon.img_path, 'damage': self.inventory.weapon.damage}}, 'vandi')
         self.saved=10
 
     def loading(self):
+        for item in self.inventory.slots:
+            self.inventory.drop(item)
         data = read_json('vandi')
         for dict in data['inventory']:
             self.inventory.add(Item(dict['name'], dict['img_path'], dict['damage']))
+        self.inventory.weapon = Item(data['weapon']['name'], data['weapon']['img_path'], data['weapon']['damage'])
         self.game.level_count = data['level_count']
         self.game.level_count_check = 0
 

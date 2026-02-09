@@ -65,9 +65,9 @@ class Inventory:
                 break
 
     def drop(self, item):
-        for slot in self.slots:
-            if slot == item:
-                slot = None
+        for i in range(len(self.slots)):
+            if self.slots[i] == item:
+                self.slots[i] = None
                 break
 
     def draw(self, screen):
