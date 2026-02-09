@@ -27,7 +27,7 @@ from inventory import Inventory, Item
 SCREEN_WIDTH = 1280  #1600
 SCREEN_HEIGHT = 960  #900
 TILE_SIZE = 64  #50
-SCROLL_THRESH = SCREEN_WIDTH // 4
+SCROLL_THRESH = SCREEN_WIDTH // 6
 FPS = 60
 INVULNERABILITY_TIME = 0.5
 
@@ -875,10 +875,14 @@ class Menu:
         self.inventory.draw(self.game.screen)
 
         mouse_pos = pygame.mouse.get_pos()
+        count=0
         for item in self.inventory.slots:
             if item!=None:
                 if point_collision(mouse_pos, item.rect) and pygame.mouse.get_pressed()[0]:
-                    self.inventory.equip(item)
+                    self.inventory.equip(count)
+
+                if point_collision(mouse_pos, item.rect) and pygame.mouse.get_pressed()[2]:
+                    self.inventory.drop(item)
 
                 if point_collision(mouse_pos, item.rect):
                     self.tooltip_flag=True
@@ -886,6 +890,7 @@ class Menu:
                     break
                 else:
                     self.tooltip_flag=False
+            count += 1
 
         if self.tooltip_flag:
             self.tooltip_surf.fill((255,255,255,100))
@@ -893,12 +898,17 @@ class Menu:
             self.game.screen.blit(self.tooltip_surf, self.tooltip_rect)
 
     def saving(self):
-        write_json({'name': 'Vandi', 'level_count': self.game.level_count, 'inventory': self.game.menu.inventory.slots}, 'vandi')
+        item_list=[]
+        for item in self.inventory.slots:
+            if item != None:
+                item_list.append([{'name': item.name, 'img_path': item.img_path, 'damage': item.damage}])
+        write_json({'name': 'Vandi', 'level_count': self.game.level_count, 'inventory': item_list}, 'vandi')
         self.saved=10
 
     def loading(self):
         data = read_json('vandi')
-        self.inventory.slots=data['inventory']
+        for dict in data['inventory']:
+            self.inventory.add(Item(dict['name'], dict['img_path'], dict['damage']))
         self.game.level_count = data['level_count']
         self.game.level_count_check = 0
 

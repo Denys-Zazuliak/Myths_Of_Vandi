@@ -9,3 +9,7 @@ the controls are:
     I - open inventory
     LEFT MOUSE BUTTON - attack
 
+    In the inventory:
+
+        LEFT MOUSE BUTTON - equip
+        RIGHT MOUSE BUTTON - drop

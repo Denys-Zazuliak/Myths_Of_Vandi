@@ -9,6 +9,7 @@ SCREEN_HEIGHT = 960  #900
 class Item:
     def __init__(self, name, img, damage):
         self.name = name
+        self.img_path = img
         self.img = pygame.image.load(img).convert_alpha()
         self.img = pygame.transform.scale(self.img, slot_size)
         self.rect = self.img.get_rect()
@@ -57,14 +58,17 @@ class Inventory:
                     self.slots[index] = item
                 else:
                     index += 1
+                    if index >= len(self.slots):
+                        index = 0
             else:
                 print('inventory full')
                 break
 
-    def remove(self, item):
+    def drop(self, item):
         for slot in self.slots:
             if slot == item:
                 slot = None
+                break
 
     def draw(self, screen):
         row=0
@@ -108,5 +112,7 @@ class Inventory:
 
         return full
 
-    def equip(self, new_weapon):
-        self.weapon = new_weapon
+    def equip(self, new_weapon_index):
+        temp=self.slots[new_weapon_index]
+        self.slots[new_weapon_index] = self.weapon
+        self.weapon = temp
