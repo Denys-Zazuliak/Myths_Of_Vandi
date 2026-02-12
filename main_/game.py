@@ -27,7 +27,7 @@ from inventory import Inventory, Item
 SCREEN_WIDTH = 1280  #1600
 SCREEN_HEIGHT = 960  #900
 TILE_SIZE = 64  #50
-SCROLL_THRESH = SCREEN_WIDTH // 6
+SCROLL_THRESH = SCREEN_WIDTH // 8
 FPS = 60
 INVULNERABILITY_TIME = 0.5
 
@@ -167,9 +167,12 @@ class Game:
                 self.menu.death_screen()
             elif self.menu.inventory_flag:
                 self.menu.inventory_menu()
+            elif self.menu.ending_screen_flag:
+                self.menu.ending_screen()
             else:
-                self.draw()
-                self.update(keys)
+                if self.world != None:
+                    self.draw()
+                    self.update(keys)
 
             self.endframe()
 
@@ -725,10 +728,11 @@ class Menu:
         self.starting_menu_flag = True
         self.settings_flag = False
         self.death_screen_flag = False
+        self.ending_screen_flag = False
         self.inventory_flag = False
-        self.tooltip_flag=False
+        self.tooltip_flag = False
         self.pause = False
-        self.saved=0
+        self.saved = 0
 
         self.inventory = Inventory(27)
         self.inventory.add(Item('spear', 'assets/items/spear.png', 5))
@@ -830,13 +834,13 @@ class Menu:
             time.sleep(0.1)
 
         if self.sounds_plus.active:
-            if self.game.volume + 0.1 <= 1:
-                self.game.volume += 0.1
+            if self.game.volume + 0.05 <= 1:
+                self.game.volume += 0.05
             mixer.music.set_volume(self.game.volume)
 
         if self.sounds_minus.active:
-            if self.game.volume - 0.1 >= 0:
-                self.game.volume -= 0.1
+            if self.game.volume - 0.05 >= 0:
+                self.game.volume -= 0.05
             mixer.music.set_volume(self.game.volume)
 
         for button in self.buttons:
@@ -897,6 +901,11 @@ class Menu:
             self.tooltip_surf.fill((255,255,255,100))
             self.tooltip_text.draw(self.tooltip_surf)
             self.game.screen.blit(self.tooltip_surf, self.tooltip_rect)
+
+    def ending_screen(self):
+        text = Text('Thank you for playing', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        self.game.screen.fill((0,0,0))
+        text.draw(self.game.screen)
 
     def saving(self):
         item_list=[]

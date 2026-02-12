@@ -10,7 +10,8 @@ SCROLL_THRESH = SCREEN_WIDTH//4
 FPS = 60
 INVULNERABILITY_TIME = 0.5
 
-LAYOUT1 = [
+level_dict={
+    1:[
     ['B20'],
     ['B1', 'A17', 'M1', 'B1'],
     ['B1', 'A18', 'B1'],
@@ -27,9 +28,8 @@ LAYOUT1 = [
     ['A15', 'B5'],
     ['A8', 'S1', 'A5', 'F1', 'B5'],
     ['A3', 'B17'],
-]
-
-LAYOUT2 = [
+],
+    2:[
     ['B20'],
     ['B1', 'A17', 'M1', 'B1'],
     ['B1', 'A18', 'B1'],
@@ -46,10 +46,8 @@ LAYOUT2 = [
     ['A20'],
     ['A8', 'S1', 'A20', 'F1'],
     ['A3', 'B200'],
-]
-
-# TUTORIAL LEVEL
-LAYOUT3= [
+],
+    3:[
     ['M65'],
     ['M1', 'A63', 'M1'],
     ['M1', 'A63', 'M1'],
@@ -66,32 +64,7 @@ LAYOUT3= [
     ['M10', 'A18', 'M3', 'A7', 'S1', 'A3', 'M1', 'A15', 'G1', 'A2', 'S1', 'F1', 'A1', 'M1'],
     ['M17', 'A7', 'M41']
 ]
-
-
-
-
-
-# level_dict={
-#     1:[
-#     ['B20'],
-#     ['B1', 'A17', 'M1', 'B1'],
-#     ['B1', 'A18', 'B1'],
-#     ['B1', 'A18', 'B1'],
-#     ['B1', 'A18', 'B1'],
-#     ['B1', 'A9','S1','A8', 'B1'],
-#     # ['B1', 'A18', 'B1'],
-#     ['B1', 'A9', 'B1', 'A8', 'B1'],
-#     ['B1', 'A18', 'B1'],
-#     ['B1', 'A18', 'B1'],
-#     ['B1', 'A18', 'B1'],
-#     ['B5', 'A13', 'S1', 'B1'],
-#     ['A16', 'B4'],
-#     ['A15', 'B5'],
-#     ['A8', 'S1', 'A5', 'F1', 'B5'],
-#     ['A3', 'B17'],
-# ],
-#     2:
-# }
+}
 
 
 
@@ -104,26 +77,15 @@ LAYOUT3= [
 
 # make world load recursive
 
-
-
-
-
-
-
-
 def load_levels(level_count, game):
-    if level_count == 1:
-        world = World(LAYOUT1, game)
-        game.items=[]
-        level = world.load_level()
+    world = None
+    level = None
 
-    elif level_count == 2:
-        world = World(LAYOUT2, game)
-        game.items = []
-        level = world.load_level()
-
-    elif level_count == 3:
-        world = World(LAYOUT3, game)
+    if level_count not in level_dict:
+        game.menu.ending_screen_flag = True
+    else:
+        layout = level_dict[level_count]
+        world = World(layout, game)
         game.items = []
         level = world.load_level()
 
