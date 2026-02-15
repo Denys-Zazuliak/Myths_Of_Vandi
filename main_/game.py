@@ -21,13 +21,13 @@ import pygame
 import time
 from pygame import mixer
 from utils import *
-from levels import load_levels
+from levels import load_levels, World
 from inventory import Inventory, Item
 
 SCREEN_WIDTH = 1280  #1600
 SCREEN_HEIGHT = 960  #900
 TILE_SIZE = 64  #50
-SCROLL_THRESH = SCREEN_WIDTH // 8
+SCROLL_THRESH = SCREEN_WIDTH // 4
 FPS = 60
 INVULNERABILITY_TIME = 0.5
 
@@ -134,8 +134,8 @@ class Game:
         self.level_count = 1
         self.level_count_check = 0
         self.screen_scroll = 0
-        self.world = None
-        self.level = None
+        self.level = []
+        self.world = World(self.level, self)
         self.vandi = self.vandi = Player(0,0, self)
 
         mixer.music.load('assets/audio/bell_ding.mp3')
@@ -170,8 +170,9 @@ class Game:
             elif self.menu.ending_screen_flag:
                 self.menu.ending_screen()
             else:
+                # if self.world != None:
+                self.draw()
                 if self.world != None:
-                    self.draw()
                     self.update(keys)
 
             self.endframe()
@@ -225,32 +226,33 @@ class Game:
             self.level_count_check = self.level_count
             self.level_load()
 
-        #draw the updated tiles and enemies
-        for shark in self.world.sharks:
-            shark.rect.x += self.screen_scroll
-            if shark.name=='goblin':
-                # surf=pygame.Surface((64,128), pygame.SRCALPHA)
-                # surf.fill((255,255,255))
-                self.screen.blit(shark.image, shark.rect)
-        self.world.sharks.draw(self.screen)
+        if self.world != None:
+            #draw the updated tiles and enemies
+            for shark in self.world.sharks:
+                shark.rect.x += self.screen_scroll
+                if shark.name=='goblin':
+                    # surf=pygame.Surface((64,128), pygame.SRCALPHA)
+                    # surf.fill((255,255,255))
+                    self.screen.blit(shark.image, shark.rect)
+            self.world.sharks.draw(self.screen)
 
-        for tile in self.level:
-            tile.img_rect.x = tile.img_rect.x + self.screen_scroll
-            self.screen.blit(tile.img, tile.img_rect)
+            for tile in self.level:
+                tile.img_rect.x = tile.img_rect.x + self.screen_scroll
+                self.screen.blit(tile.img, tile.img_rect)
 
-        #dropped item
-        for item in self.items:
-            item.rect.x = item.rect.x + self.screen_scroll
-            self.screen.blit(item.img, item.rect)
+            #dropped item
+            for item in self.items:
+                item.rect.x = item.rect.x + self.screen_scroll
+                self.screen.blit(item.img, item.rect)
 
-            # to avoid going through the list again
-            if rect_collision(item.rect, self.vandi.rect):
-                self.menu.inventory.add(item)
-                self.items.remove(item)
+                # to avoid going through the list again
+                if rect_collision(item.rect, self.vandi.rect):
+                    self.menu.inventory.add(item)
+                    self.items.remove(item)
 
-        self.screen.blit(self.vandi.img, self.vandi.img_rect)
+            self.screen.blit(self.vandi.img, self.vandi.img_rect)
 
-        self.draw_text(f'Health: {self.vandi.health}', (100, 20))
+            self.draw_text(f'Health: {self.vandi.health}', (100, 20))
 
     # def draw_grid(self):
     #     for line in range(0, 80):
@@ -670,6 +672,40 @@ class AttackHitbox():
             self.image = self.images_left[self.index]
             self.rect.right = self.attacker.rect.left
             self.rect.y = self.attacker.rect.top
+
+class Projectile(pygame.sprite.Sprite):
+    def __init__(self, img, player):
+        super().__init__()
+        self.img = pygame.image.load(img).convert_alpha()
+        self.rect = pygame.Rect(player.rect.right, player.rect.centery - 4, 8, 8)
+        self.v = 7
+
+    def move(self):
+        self.rect.move_ip(self.v, 0)
+
+    def wall_collide(self):
+        if self.rect.left < 0:
+            del self
+            return 1
+        if self.rect.right > SCREEN_WIDTH:
+            del self
+            return 1
+        if self.rect.top <= 0:
+            del self
+            return 1
+        if self.rect.bottom >= SCREEN_HEIGHT:
+            del self
+            return 1
+        return 0
+
+    def enemy_collide(self, enemies):
+        for enemy in enemies:
+            if self.rect.colliderect(enemy):
+                enemy.set_health(enemy.get_health() - 1)
+                del self
+                return 1
+        return 0
+
 
 class Text:
     def __init__(self, text, size, coordinates, colour=(255, 255, 255)):

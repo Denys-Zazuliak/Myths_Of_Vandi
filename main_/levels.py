@@ -81,7 +81,7 @@ def load_levels(level_count, game):
     world = None
     level = None
 
-    if level_count not in level_dict:
+    if level_count not in level_dict.keys():
         game.menu.ending_screen_flag = True
     else:
         layout = level_dict[level_count]

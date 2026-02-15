@@ -1,7 +1,12 @@
 {
   "inventory" : [
     {
-      "damage" : 5, 
+      "damage" : 1, 
+      "img_path" : "assets/items/spear.png", 
+      "name" : "spear"
+    }, 
+    {
+      "damage" : 1, 
       "img_path" : "assets/items/spear.png", 
       "name" : "spear"
     }
@@ -9,7 +14,7 @@
   "level_count" : 3, 
   "name" : "Vandi", 
   "weapon" : {
-    "damage" : 1, 
+    "damage" : 5, 
     "img_path" : "assets/items/spear.png", 
     "name" : "spear"
   }
