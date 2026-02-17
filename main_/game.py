@@ -183,8 +183,10 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.vandi.fireball()
             if event.type == pygame.MOUSEBUTTONUP:
-                    self.vandi.not_press = True
+                self.vandi.not_press = True
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.menu.pause = True
@@ -211,6 +213,11 @@ class Game:
 
         self.vandi.wall_collision()
         self.vandi.attack()
+
+        for projectile in self.vandi.projectiles:
+            projectile.move()
+            projectile.enemy_collide(self.world.sharks)
+            projectile.wall_collide()
 
         for enemy in self.world.sharks:
             enemy.attack()
@@ -420,6 +427,7 @@ class Player:
         self.velocity = [0, 0]
         self.direction = 0
         self.attackHitbox = AttackHitbox(self)
+        self.projectiles=[]
 
         self.health = 5
         self.invulnerable = False
@@ -508,6 +516,10 @@ class Player:
             self.game.screen.blit(self.attackHitbox.image, self.attackHitbox.rect)
             self.attackHitbox.animation()
             self.attackHitbox.hit_collision()
+
+    def fireball(self):
+        projectile = Projectile(self)
+        self.projectiles.append(projectile)
 
     def wall_collision(self):
         if self.rect.left < 0:
@@ -673,12 +685,11 @@ class AttackHitbox():
             self.rect.right = self.attacker.rect.left
             self.rect.y = self.attacker.rect.top
 
-class Projectile(pygame.sprite.Sprite):
+class Projectile():
     def __init__(self, img, player):
-        super().__init__()
         self.img = pygame.image.load(img).convert_alpha()
         self.rect = pygame.Rect(player.rect.right, player.rect.centery - 4, 8, 8)
-        self.v = 7
+        self.v = 10
 
     def move(self):
         self.rect.move_ip(self.v, 0)
@@ -686,25 +697,18 @@ class Projectile(pygame.sprite.Sprite):
     def wall_collide(self):
         if self.rect.left < 0:
             del self
-            return 1
         if self.rect.right > SCREEN_WIDTH:
             del self
-            return 1
         if self.rect.top <= 0:
             del self
-            return 1
         if self.rect.bottom >= SCREEN_HEIGHT:
             del self
-            return 1
-        return 0
 
     def enemy_collide(self, enemies):
         for enemy in enemies:
             if self.rect.colliderect(enemy):
                 enemy.set_health(enemy.get_health() - 1)
                 del self
-                return 1
-        return 0
 
 
 class Text:
