@@ -747,7 +747,7 @@ class Menu:
         self.start_bg = pygame.image.load('assets/menu/peak.jpg')
         self.start_bg = pygame.transform.scale(self.start_bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.start_bg_rect = self.start_bg.get_rect()
-        self.death_bg = pygame.image.load('assets/menu/death_screen.jpg')
+        self.death_bg = pygame.image.load('assets/menu/death_screen.png')
         self.death_bg = pygame.transform.scale(self.death_bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.death_bg_rect = self.death_bg.get_rect()
 
@@ -885,11 +885,11 @@ class Menu:
 
     def death_screen(self):
         self.buttons = [self.settings, self.load, self.exit]
-        title = Text('Failure', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
+        # title = Text('Failure', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
         self.game.screen.blit(self.death_bg, self.death_bg_rect)
         # self.game.screen.fill((0, 0, 0))
-        title.draw(self.game.screen)
+        # title.draw(self.game.screen)
         for button in self.buttons:
             button.collision = True
             button.draw_and_collision(self.game.screen)
