@@ -11,59 +11,67 @@ FPS = 60
 INVULNERABILITY_TIME = 0.5
 
 level_dict={
-    1:[
-    ['B20'],
-    ['B1', 'A17', 'M1', 'B1'],
-    ['B1', 'A18', 'B1'],
-    ['B1', 'A18', 'B1'],
-    ['B1', 'A18', 'B1'],
-    ['B1', 'A9','S1','A8', 'B1'],
-    # ['B1', 'A18', 'B1'],
-    ['B1', 'A9', 'B1', 'A8', 'B1'],
-    ['B1', 'A18', 'B1'],
-    ['B1', 'A18', 'B1'],
-    ['B1', 'A18', 'B1'],
-    ['B5', 'A13', 'S1', 'B1'],
-    ['A16', 'B4'],
-    ['A15', 'B5'],
-    ['A8', 'S1', 'A5', 'F1', 'B5'],
-    ['A3', 'B17'],
-],
-    2:[
-    ['B20'],
-    ['B1', 'A17', 'M1', 'B1'],
-    ['B1', 'A18', 'B1'],
-    ['B1', 'A18', 'B1'],
-    ['B1', 'A18', 'B1'],
-    ['B1', 'A9', 'S1', 'A8', 'B1'],
-    # ['B1', 'A18', 'B1'],
-    ['B1', 'A9', 'B1', 'A8', 'B1'],
-    ['B1', 'A18', 'B1'],
-    ['B1', 'A18', 'B1'],
-    ['B1', 'A18', 'B1'],
-    ['B5', 'A13', 'S1', 'B1'],
-    ['A20'],
-    ['A20'],
-    ['A8', 'S1', 'A20', 'F1'],
-    ['A3', 'B200'],
-],
-    3:[
-    ['M65'],
-    ['M1', 'A63', 'M1'],
-    ['M1', 'A63', 'M1'],
-    ['M1', 'A63', 'M1'],
-    ['M1', 'A63', 'M1'],
-    ['M1', 'A63', 'M1'],
-    ['M1', 'A63', 'M1'],
-    ['M1', 'A63', 'M1'],
-    ['M1', 'A63', 'M1'],
-    ['M1', 'A63', 'M1'],
-    ['M1', 'A14', 'M2', 'A2', 'M1', 'A2', 'M2', 'A9', 'M3', 'A13', 'M1', 'A9', 'S1', 'A4', 'M1'],
-    ['M8', 'A3', 'M3', 'A16', 'M1', 'A16', 'M1', 'A10', 'M2', 'A4', 'M1'],
-    ['M9', 'A20', 'M2', 'A13', 'M2', 'A16', 'F1', 'A1', 'M1'],
-    ['M10', 'A18', 'M3', 'A7', 'S1', 'A3', 'M1', 'A15', 'G1', 'A2', 'S1', 'F1', 'A1', 'M1'],
-    ['M17', 'A7', 'M41']
-]
+    1: {'layout':[
+        ['B20'],
+        ['B1', 'A17', 'M1', 'B1'],
+        ['B1', 'A18', 'B1'],
+        ['B1', 'A18', 'B1'],
+        ['B1', 'A18', 'B1'],
+        ['B1', 'A9','S1','A8', 'B1'],
+        # ['B1', 'A18', 'B1'],
+        ['B1', 'A9', 'B1', 'A8', 'B1'],
+        ['B1', 'A18', 'B1'],
+        ['B1', 'A18', 'B1'],
+        ['B1', 'A18', 'B1'],
+        ['B5', 'A13', 'S1', 'B1'],
+        ['A16', 'B4'],
+        ['A15', 'B5'],
+        ['A8', 'S1', 'A5', 'F1', 'B5'],
+        ['A3', 'B17'],
+        ],
+        'bg': 'new_assets/what_the_hell_am_i_doing.png'
+    },
+
+    2: {'layout':[
+        ['B20'],
+        ['B1', 'A17', 'M1', 'B1'],
+        ['B1', 'A18', 'B1'],
+        ['B1', 'A18', 'B1'],
+        ['B1', 'A18', 'B1'],
+        ['B1', 'A9', 'S1', 'A8', 'B1'],
+        # ['B1', 'A18', 'B1'],
+        ['B1', 'A9', 'B1', 'A8', 'B1'],
+        ['B1', 'A18', 'B1'],
+        ['B1', 'A18', 'B1'],
+        ['B1', 'A18', 'B1'],
+        ['B5', 'A13', 'S1', 'B1'],
+        ['A20'],
+        ['A20'],
+        ['A8', 'S1', 'A20', 'F1'],
+        ['A3', 'B200'],
+        ],
+        'bg': 'new_assets/bg_cyberpunk.png'
+    },
+
+    3: {'layout':[
+        ['M65'],
+        ['M1', 'A63', 'M1'],
+        ['M1', 'A63', 'M1'],
+        ['M1', 'A63', 'M1'],
+        ['M1', 'A63', 'M1'],
+        ['M1', 'A63', 'M1'],
+        ['M1', 'A63', 'M1'],
+        ['M1', 'A63', 'M1'],
+        ['M1', 'A63', 'M1'],
+        ['M1', 'A63', 'M1'],
+        ['M1', 'A14', 'M2', 'A2', 'M1', 'A2', 'M2', 'A9', 'M3', 'A13', 'M1', 'A9', 'S1', 'A4', 'M1'],
+        ['M8', 'A3', 'M3', 'A16', 'M1', 'A16', 'M1', 'A10', 'M2', 'A4', 'M1'],
+        ['M9', 'A20', 'M2', 'A13', 'M2', 'A16', 'F1', 'A1', 'M1'],
+        ['M10', 'A18', 'M3', 'A7', 'S1', 'A3', 'M1', 'A15', 'G1', 'A2', 'S1', 'F1', 'A1', 'M1'],
+        ['M17', 'A7', 'M41']
+        ],
+        'bg': 'new_assets/bg_cyberpunk.png'
+    }
 }
 
 
@@ -78,18 +86,20 @@ level_dict={
 # make world load recursive
 
 def load_levels(level_count, game):
+    bg = None
     world = None
     level = None
 
     if level_count not in level_dict.keys():
         game.menu.ending_screen_flag = True
     else:
-        layout = level_dict[level_count]
+        layout = level_dict[level_count]['layout']
+        bg = pygame.image.load(level_dict[level_count]['bg']).convert_alpha()
         world = World(layout, game)
         game.items = []
         level = world.load_level()
 
-    return world, level
+    return world, level, bg
 
 def tile_load(self, image, material):
     x = TILE_SIZE * self.tile_count
@@ -346,3 +356,6 @@ class Enemy(pygame.sprite.Sprite):
 
         self.rect.move_ip(self.velocity)
         self.velocity[1] += self.game.gravity
+
+class Boss(Enemy):
+    pass

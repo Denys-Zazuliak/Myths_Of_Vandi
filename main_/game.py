@@ -134,8 +134,10 @@ class Game:
         self.level_count = 1
         self.level_count_check = 0
         self.screen_scroll = 0
+        self.last_update = 0
         self.level = []
         self.world = World(self.level, self)
+        self.bg = None
         self.vandi = self.vandi = Player(0,0, self)
 
         mixer.music.load('assets/audio/bell_ding.mp3')
@@ -170,8 +172,8 @@ class Game:
             elif self.menu.ending_screen_flag:
                 self.menu.ending_screen()
             else:
-                # if self.world != None:
                 self.draw()
+                # if self.world != None:
                 if self.world != None:
                     self.update(keys)
 
@@ -183,8 +185,18 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                self.vandi.fireball()
+            if event.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed()[2]:
+                # cooldown on fireball
+                delay = 500
+                current_time = pygame.time.get_ticks()
+
+                if self.last_update == 0:
+                    self.last_update = current_time
+
+                if current_time - self.last_update > delay:
+                    self.vandi.fireball()
+                    self.last_update = current_time
+
             if event.type == pygame.MOUSEBUTTONUP:
                 self.vandi.not_press = True
             if event.type == pygame.KEYDOWN:
@@ -216,8 +228,8 @@ class Game:
 
         for projectile in self.vandi.projectiles:
             projectile.move()
-            projectile.enemy_collide(self.world.sharks)
-            projectile.wall_collide()
+            projectile.enemy_collision(self.world.sharks)
+            projectile.collision(self.world)
 
         for enemy in self.world.sharks:
             enemy.attack()
@@ -227,11 +239,19 @@ class Game:
 
     def draw(self):
         self.screen.fill((50, 50, 50))
+        if self.bg!=None:
+            rect = self.bg.get_rect()
+            rect.centerx = self.bg.get_size()[0] // 2
+            rect.centery = self.bg.get_size()[1] // 2
+            self.screen.blit(self.bg, rect)
         # pygame.draw.rect(self.screen, (255, 255, 255), self.vandi.rect)
 
         if self.level_count != self.level_count_check:
             self.level_count_check = self.level_count
             self.level_load()
+
+        for projectile in self.vandi.projectiles:
+            self.screen.blit(projectile.img, projectile.rect)
 
         if self.world != None:
             #draw the updated tiles and enemies
@@ -274,7 +294,7 @@ class Game:
         text.draw(screen)
 
     def level_load(self):
-        self.world, self.level = load_levels(self.level_count, self)
+        self.world, self.level, self.bg= load_levels(self.level_count, self)
         self.vandi = Player(TILE_SIZE * 5, TILE_SIZE * 8, self)
 
     def endframe(self):
@@ -425,7 +445,7 @@ class Player:
 
         self.on_ground = False
         self.velocity = [0, 0]
-        self.direction = 0
+        self.direction = 1
         self.attackHitbox = AttackHitbox(self)
         self.projectiles=[]
 
@@ -469,22 +489,22 @@ class Player:
 
             if keys[pygame.K_d]:
                 self.index += 1
-                self.direction = 0
+                self.direction = 1
                 if self.index >= len(self.images_right):
                     self.index = 0
 
             elif keys[pygame.K_a]:
                 self.index += 1
-                self.direction = 1
+                self.direction = -1
                 if self.index >= len(self.images_left):
                     self.index = 0
 
             else:
                 self.index = 0
 
-            if self.direction == 0:
+            if self.direction == 1:
                 self.img = self.images_right[self.index]
-            elif self.direction == 1:
+            elif self.direction == -1:
                 self.img = self.images_left[self.index]
 
         return self.screen_scroll
@@ -518,7 +538,7 @@ class Player:
             self.attackHitbox.hit_collision()
 
     def fireball(self):
-        projectile = Projectile(self)
+        projectile = Projectile('new_assets/fireball.png', self)
         self.projectiles.append(projectile)
 
     def wall_collision(self):
@@ -643,23 +663,23 @@ class AttackHitbox():
 
         self.last_update = 0
 
-        if self.attacker.direction == 0:
+        if self.attacker.direction == 1:
             self.image = self.images_right[0]
             self.rect = self.image.get_rect(midleft=self.attacker.rect.midright)
-        elif self.attacker.direction == 1:
+        elif self.attacker.direction == -1:
             self.image = self.images_left[0]
             self.rect = self.image.get_rect(midright=self.attacker.rect.midleft)
 
     def hit_collision(self):
-        for tile in self.attacker.game.world.sharks:
-            if not tile.invulnerable and rect_collision(tile.rect, self.rect):
-                tile.health -= self.attacker.game.menu.inventory.weapon.damage
-                tile.invulnerable = True
-                print(tile.health)
-                if tile.check_dead():
-                    self.attacker.game.world.sharks.remove(tile)
+        for enemy in self.attacker.game.world.sharks:
+            if not enemy.invulnerable and rect_collision(enemy.rect, self.rect):
+                enemy.health -= self.attacker.game.menu.inventory.weapon.damage
+                enemy.invulnerable = True
+                print(enemy.health)
+                if enemy.check_dead():
+                    self.attacker.game.world.sharks.remove(enemy)
 
-            tile.invulnerability_update()
+            enemy.invulnerability_update()
 
     def animation(self):
         delay = 100
@@ -676,39 +696,95 @@ class AttackHitbox():
             self.index = 0
             self.active = False
 
-        if self.attacker.direction == 0:
+        if self.attacker.direction == 1:
             self.image = self.images_right[self.index]
             self.rect.left = self.attacker.rect.right
             self.rect.y = self.attacker.rect.midtop[1]
-        elif self.attacker.direction == 1:
+        elif self.attacker.direction == -1:
             self.image = self.images_left[self.index]
             self.rect.right = self.attacker.rect.left
             self.rect.y = self.attacker.rect.top
 
 class Projectile():
-    def __init__(self, img, player):
-        self.img = pygame.image.load(img).convert_alpha()
-        self.rect = pygame.Rect(player.rect.right, player.rect.centery - 4, 8, 8)
-        self.v = 10
+    def __init__(self, spritesheet, attacker):
+        self.images_right = []
+        self.images_left = []
+        self.index = 0
+        self.counter = 0
+
+        # change the image_size and scale
+
+        self.image_size = [34, 17]
+        self.spritesheet = SpriteSheet(pygame.image.load(spritesheet).convert_alpha())
+        self.animation_steps = 5
+
+        for i in range(self.animation_steps):
+            img = self.spritesheet.get_image(i, self.image_size, 1, (0, 0, 0)).convert_alpha()
+            self.images_right.append(img)
+            img_left = pygame.transform.flip(img, True, False)
+            self.images_left.append(img_left)
+
+        self.rect = pygame.Rect(attacker.rect.right, attacker.rect.centery - 4, 8, 8)
+        self.attacker = attacker
+        self.velocity = 10
+
+        if self.attacker.direction == 1:
+            self.direction = 1
+            self.img = self.images_right[self.index]
+        elif self.attacker.direction == -1:
+            self.direction = -1
+            self.img = self.images_left[self.index]
 
     def move(self):
-        self.rect.move_ip(self.v, 0)
+        self.rect.move_ip(self.velocity * self.direction, 0)
 
-    def wall_collide(self):
+        self.counter += 1
+        if self.counter > 5:
+            self.counter = 0
+
+            self.index += 1
+
+            if self.index >= len(self.images_left):
+                self.index = 0
+
+            if self.direction == 1:
+                self.img = self.images_right[self.index]
+            elif self.direction == -1:
+                self.img = self.images_left[self.index]
+
+    def collision(self, world):
+        delete = False
         if self.rect.left < 0:
-            del self
+            delete = True
         if self.rect.right > SCREEN_WIDTH:
-            del self
+            delete = True
         if self.rect.top <= 0:
-            del self
+            delete = True
         if self.rect.bottom >= SCREEN_HEIGHT:
+            delete = True
+
+        for tile in world.tile_list:
+            walking_rect = pygame.Rect(self.rect.x + self.velocity, self.rect.y, self.rect.width, self.rect.height)
+            if rect_collision(tile.img_rect, walking_rect):
+                delete = True
+
+        if delete:
+            self.attacker.projectiles.remove(self)
             del self
 
-    def enemy_collide(self, enemies):
+    def enemy_collision(self, enemies):
         for enemy in enemies:
-            if self.rect.colliderect(enemy):
-                enemy.set_health(enemy.get_health() - 1)
+            if not enemy.invulnerable and rect_collision(enemy.rect, self.rect):
+                enemy.health -= 1
+                enemy.invulnerable = True
+                print(enemy.health)
+                if enemy.check_dead():
+                    self.attacker.game.world.sharks.remove(enemy)
+                self.attacker.projectiles.remove(self)
                 del self
+                break
+
+            enemy.invulnerability_update()
 
 
 class Text:
