@@ -269,15 +269,26 @@ class Enemy(pygame.sprite.Sprite):
     def item_drops(self):
         if randint(1, 100) >= 50:
             if randint(1, 100) >= 95:
-                drop = Item('spear', 'assets/items/spear.png', randint(1, 3))
+                drop = Item('spear', 'assets/items/spear.png', 3)
                 drop.rect.center = self.rect.center
                 self.game.items.append(drop)
                 print('added strong item')
-            else:
-                drop = Item('spear', 'assets/items/spear.png', randint(1, 1))
+            elif randint(1, 100) >= 85 and self.name == 'goblin':
+                drop = Item('flamberge', 'assets/items/flamberge.png', 2)
                 drop.rect.center = self.rect.center
                 self.game.items.append(drop)
-                print('added item')
+            elif randint(1, 100) >= 75:
+                drop = Item('rapier', 'assets/items/rapier.png', 2)
+                drop.rect.center = self.rect.center
+                self.game.items.append(drop)
+            elif randint(1, 100) >= 65:
+                drop = Item('executioner’s sword', 'assets/items/executioner’s sword.png', 2)
+                drop.rect.center = self.rect.center
+                self.game.items.append(drop)
+            else:
+                drop = Item('stick', 'assets/items/stick.png', 1)
+                drop.rect.center = self.rect.center
+                self.game.items.append(drop)
 
     def invulnerability_update(self):
         self.i_frames += 1
@@ -338,6 +349,7 @@ class Enemy(pygame.sprite.Sprite):
             if self.game.vandi.check_dead():
                 # print('Game Over')
                 self.game.menu.death_screen_flag = True
+                self.game.misc_channel.play(pygame.mixer.Sound('assets/audio/game_over.mp3'))
 
         self.game.vandi.invulnerability_update()
 
