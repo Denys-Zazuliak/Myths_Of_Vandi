@@ -757,6 +757,7 @@ class Projectile():
     def move(self):
         self.rect.move_ip(self.velocity * self.direction, 0)
 
+        # animation
         self.counter += 1
         if self.counter > 5:
             self.counter = 0

@@ -50,7 +50,7 @@ level_dict={
         ['A8', 'S1', 'A20', 'F1'],
         ['A3', 'B200'],
         ],
-        'bg': 'new_assets/bg_cyberpunk.png'
+        'bg': 'assets/menu/bg_sky.png'
     },
 
     3: {'layout':[
