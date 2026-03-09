@@ -170,6 +170,9 @@ class World:
         return self.tile_list
 
 class Tile:
+    '''
+    A helping class which makes it easier to identify what kind of tile it is and its position
+    '''
     def __init__(self, image, x, y, material):
         self.img = pygame.transform.scale(image, (TILE_SIZE, TILE_SIZE))
         self.img = pygame.transform.scale(image, (TILE_SIZE, TILE_SIZE))
