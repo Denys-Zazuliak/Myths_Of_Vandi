@@ -58,13 +58,13 @@ class Game:
         running : bool
             a variable that determines whether the game loop should carry on
 
-        volume : int
+        volume : float
             a variable responsible for the volume of the sounds and music in-game
 
-        gravity : int
+        gravity : float
             a variable responsible for the strength of gravity in the game
 
-        level_count :
+        level_count : int
             a variable used to determine what level the player is currently on
 
         level_count_check : int
