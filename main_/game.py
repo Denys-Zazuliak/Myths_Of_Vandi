@@ -259,6 +259,10 @@ class Game:
 
         if self.world != None:
             #draw the updated tiles and enemies
+            for tile in self.level:
+                tile.img_rect.x = tile.img_rect.x + self.screen_scroll
+                self.screen.blit(tile.img, tile.img_rect)
+
             for shark in self.world.sharks:
                 shark.rect.x += self.screen_scroll
                 if shark.name=='goblin':
@@ -266,10 +270,6 @@ class Game:
                     # surf.fill((255,255,255))
                     self.screen.blit(shark.image, shark.rect)
             self.world.sharks.draw(self.screen)
-
-            for tile in self.level:
-                tile.img_rect.x = tile.img_rect.x + self.screen_scroll
-                self.screen.blit(tile.img, tile.img_rect)
 
             #dropped item
             for item in self.items:
