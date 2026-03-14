@@ -2,12 +2,13 @@ run file (game.py) in the (main_) folder
 
 the controls are:
 
-    S - move left
+    A - move left
     D - move right
     SPACE - jump
     ESC - pause
     I - open inventory
-    LEFT MOUSE BUTTON - attack
+    LEFT MOUSE BUTTON - melee attack
+    RIGHT MOUSE BUTTON - fireball
 
     In the inventory:
 

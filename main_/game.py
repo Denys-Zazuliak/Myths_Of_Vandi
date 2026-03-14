@@ -166,15 +166,15 @@ class Game:
         while self.running:
             keys = self.input_handling()
 
-            if self.menu.pause:
-                self.menu.pause_menu()
+            if self.menu.ending_screen_flag:
+                self.menu.ending_screen()
             elif self.menu.death_screen_flag:
                 self.bg_music_channel.pause()
                 self.menu.death_screen()
+            elif self.menu.pause:
+                self.menu.pause_menu()
             elif self.menu.inventory_flag:
                 self.menu.inventory_menu()
-            elif self.menu.ending_screen_flag:
-                self.menu.ending_screen()
             else:
                 self.draw()
                 # if self.world != None:
@@ -856,7 +856,7 @@ class Menu:
         self.settings = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 150, f'assets/menu/buttons/settings.png', 5)
         self.save = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 50, f'assets/menu/buttons/save.png', 5)
         self.load = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 50, f'assets/menu/buttons/restart.png', 5)
-        self.exit = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 150, f'assets/menu/buttons/quit.png', 5)
+        self.quit = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 150, f'assets/menu/buttons/quit.png', 5)
         self.sounds_plus = Button((SCREEN_WIDTH // 2) + 300, (SCREEN_HEIGHT // 2) - 175,
                                   f'assets/menu/buttons/arrow_up.png', 5)
         self.sounds_minus = Button((SCREEN_WIDTH // 2) + 300, (SCREEN_HEIGHT // 2) - 75,
@@ -885,7 +885,7 @@ class Menu:
             self.settings_menu()
 
         else:
-            self.buttons = [self.start, self.settings, self.load, self.exit]
+            self.buttons = [self.start, self.settings, self.load, self.quit]
             # title = Text('The Myths Of Vandi', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
             self.game.screen.blit(self.start_bg, self.start_bg_rect)
@@ -906,7 +906,7 @@ class Menu:
 
                 self.starting_menu_flag = False
 
-            if self.exit.active:
+            if self.quit.active:
                 self.game.running = False
                 self.starting_menu_flag = False
 
@@ -915,7 +915,7 @@ class Menu:
 
     def pause_menu(self):
         self.pause = True
-        self.buttons = [self.resume, self.settings, self.save, self.load, self.exit]
+        self.buttons = [self.resume, self.settings, self.save, self.load, self.quit]
         paused = Text('Paused', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
         self.game.screen.blit(self.pause_bg, self.pause_bg_rect)
@@ -947,7 +947,7 @@ class Menu:
 
             self.pause = False
 
-        if self.exit.active:
+        if self.quit.active:
             self.game.running = False
             self.pause = False
 
@@ -991,7 +991,7 @@ class Menu:
             button.active = False
 
     def death_screen(self):
-        self.buttons = [self.settings, self.load, self.exit]
+        self.buttons = [self.settings, self.load, self.quit]
         # title = Text('Failure', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
         self.game.screen.blit(self.death_bg, self.death_bg_rect)
@@ -1011,7 +1011,7 @@ class Menu:
 
             self.death_screen_flag = False
 
-        if self.exit.active:
+        if self.quit.active:
             self.game.running = False
             self.death_screen_flag = False
 
@@ -1053,7 +1053,7 @@ class Menu:
             self.game.screen.blit(self.tooltip_surf, self.tooltip_rect)
 
     def ending_screen(self):
-        self.buttons = [self.exit]
+        self.buttons = [self.quit]
         text = Text('Thank you for playing', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
         self.game.screen.fill((0,0,0))
         text.draw(self.game.screen)
@@ -1062,7 +1062,7 @@ class Menu:
             button.collision = True
             button.draw_and_collision(self.game.screen)
 
-        if self.exit.active:
+        if self.quit.active:
             self.game.running = False
             self.ending_screen_flag = False
 
@@ -1112,9 +1112,6 @@ class Button:
                 self.active = True
 
         return self.active
-
-    def set_pos(self, pos):
-        self.rect.center=pos
 
 if __name__ == '__main__':
     game = Game()

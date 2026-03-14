@@ -101,15 +101,6 @@ def load_levels(level_count, game):
 
     return world, level, bg
 
-def tile_load(self, image, material):
-    x = TILE_SIZE * self.tile_count
-    y = TILE_SIZE * self.row_count
-
-    tile = Tile(image, x, y, material)
-    self.tile_list.append(tile)
-
-    self.tile_count = self.tile_count + 1
-
 def rect_collision(rect1, rect2):
     if rect1.right>=rect2.left and rect1.left<=rect2.right and rect1.bottom>=rect2.top and rect1.top<=rect2.bottom:
         colliding=True
@@ -122,7 +113,7 @@ class World:
     def __init__(self, data, parent_class):
         self.tile_list=[]
         self.data = data
-        self.game=parent_class
+        self.game = parent_class
 
         self.block=pygame.image.load(f'assets/blocks/block.jpg')
         self.metal=pygame.image.load(f'assets/blocks/metal.png')
@@ -142,11 +133,11 @@ class World:
 
                 if tile[0]=='B':
                     for i in range(int(tile[1:])):
-                        tile_load(self, self.block, 'block')
+                        self.tile_load(self.block, 'block')
 
                 if tile[0]=='M':
                     for i in range(int(tile[1:])):
-                        tile_load(self, self.metal, 'metal')
+                        self.tile_load(self.metal, 'metal')
 
                 if tile[0]=='S':
                     # (TILE_SIZE * self.row_count - ((TILE_SIZE * (self.row_count)) - (TILE_SIZE * (self.row_count + 1))))
@@ -163,11 +154,20 @@ class World:
 
                 if tile[0]=='F':
                     for i in range(int(tile[1:])):
-                        tile_load(self, self.finish, 'finish')
+                        self.tile_load(self.finish, 'finish')
 
             self.row_count+=1
 
         return self.tile_list
+
+    def tile_load(self, image, material):
+        x = TILE_SIZE * self.tile_count
+        y = TILE_SIZE * self.row_count
+
+        tile = Tile(image, x, y, material)
+        self.tile_list.append(tile)
+
+        self.tile_count += 1
 
 class Tile:
     '''
