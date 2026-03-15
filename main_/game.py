@@ -16,7 +16,7 @@ Methods
 
 """
 
-import pygame
+
 import time
 from pygame import mixer
 from random import randint
@@ -123,7 +123,7 @@ class Game:
     def __init__(self):
         # general setup
         self.setting_up()
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT)) # , pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT) , pygame.FULLSCREEN)
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont("Arial", 20)
         self.menu = Menu(self)
@@ -171,7 +171,7 @@ class Game:
             elif self.menu.death_screen_flag:
                 self.bg_music_channel.pause()
                 self.menu.death_screen()
-            elif self.menu.pause:
+            elif self.menu.pause_flag:
                 self.menu.pause_menu()
             elif self.menu.inventory_flag:
                 self.menu.inventory_menu()
@@ -205,7 +205,7 @@ class Game:
                 self.vandi.not_press = True
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    self.menu.pause = True
+                    self.menu.pause_flag = True
                 if event.key == pygame.K_i:
                     if not self.menu.inventory_flag:
                         self.menu.inventory_flag = True
@@ -232,10 +232,10 @@ class Game:
 
         for projectile in self.vandi.projectiles:
             projectile.move()
-            projectile.enemy_collision(self.world.sharks)
+            projectile.enemy_collision(self.world.enemies)
             projectile.collision(self.world)
 
-        for enemy in self.world.sharks:
+        for enemy in self.world.enemies:
             enemy.attack()
             if not enemy.tracking:
                 enemy.update()
@@ -263,13 +263,13 @@ class Game:
                 tile.img_rect.x = tile.img_rect.x + self.screen_scroll
                 self.screen.blit(tile.img, tile.img_rect)
 
-            for shark in self.world.sharks:
+            for shark in self.world.enemies:
                 shark.rect.x += self.screen_scroll
                 if shark.name=='goblin':
                     # surf=pygame.Surface((64,128), pygame.SRCALPHA)
                     # surf.fill((255,255,255))
                     self.screen.blit(shark.image, shark.rect)
-            self.world.sharks.draw(self.screen)
+            self.world.enemies.draw(self.screen)
 
             #dropped item
             for item in self.items:
@@ -360,7 +360,7 @@ class Player:
             stores both components of the character's velocity (in pixels)
 
         direction : int
-            shows which way the character is looking (1 means to the right, 0 means to the left)
+            shows which way the character is looking (1 means to the right, -1 means to the left)
 
         attackHitbox : AttackHitbox
             an instance of the attack hitbox class,
@@ -688,13 +688,13 @@ class AttackHitbox():
             self.rect = self.image.get_rect(midright=self.attacker.rect.midleft)
 
     def hit_collision(self):
-        for enemy in self.attacker.game.world.sharks:
+        for enemy in self.attacker.game.world.enemies:
             if not enemy.invulnerable and rect_collision(enemy.rect, self.rect):
                 enemy.health -= self.attacker.game.menu.inventory.weapon.damage
                 enemy.invulnerable = True
                 print(enemy.health)
                 if enemy.check_dead():
-                    self.attacker.game.world.sharks.remove(enemy)
+                    self.attacker.game.world.enemies.remove(enemy)
 
                 self.attacker.game.misc_channel.play(pygame.mixer.Sound('assets/audio/hit.mp3'), 1)
 
@@ -799,7 +799,7 @@ class Projectile():
                 enemy.invulnerable = True
                 print(enemy.health)
                 if enemy.check_dead():
-                    self.attacker.game.world.sharks.remove(enemy)
+                    self.attacker.game.world.enemies.remove(enemy)
                 self.attacker.projectiles.remove(self)
                 del self
                 break
@@ -839,6 +839,11 @@ class Text:
 
 
 class Menu:
+    '''
+    The class that controls all menus and UI elements
+
+    '''
+
     def __init__(self, parent_class):
         self.game = parent_class
         self.pause_bg = pygame.image.load('assets/menu/background.png')
@@ -868,7 +873,7 @@ class Menu:
         self.ending_screen_flag = False
         self.inventory_flag = False
         self.tooltip_flag = False
-        self.pause = False
+        self.pause_flag = False
         self.saved = 0
 
         self.last_update = 0
@@ -914,7 +919,7 @@ class Menu:
                 button.collision=False
 
     def pause_menu(self):
-        self.pause = True
+        self.pause_flag = True
         self.buttons = [self.resume, self.settings, self.save, self.load, self.quit]
         paused = Text('Paused', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
@@ -926,7 +931,7 @@ class Menu:
             button.draw_and_collision(self.game.screen)
 
         if self.resume.active and not self.settings_flag:
-            self.pause = False
+            self.pause_flag = False
 
         if self.settings.active:
             self.settings_flag = True
@@ -945,11 +950,11 @@ class Menu:
         if self.load.active:
             self.loading()
 
-            self.pause = False
+            self.pause_flag = False
 
         if self.quit.active:
             self.game.running = False
-            self.pause = False
+            self.pause_flag = False
 
         for button in self.buttons:
             button.collision = False

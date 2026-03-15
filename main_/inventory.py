@@ -30,8 +30,8 @@ class Item:
 
 class Inventory:
     '''
-
     The equip() method allows the player to swap their currently equipped weapon with an item from a selected inventory slot.
+
     '''
     def __init__(self, max_size, slots=None):
         if slots is None:

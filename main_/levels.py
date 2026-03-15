@@ -118,7 +118,7 @@ class World:
         self.block=pygame.image.load(f'assets/blocks/block.jpg')
         self.metal=pygame.image.load(f'assets/blocks/metal.png')
         self.finish = pygame.image.load(f'assets/blocks/metal.png')
-        self.sharks=pygame.sprite.Group()
+        self.enemies=pygame.sprite.Group()
 
         self.tile_count=0
         self.row_count=0
@@ -142,13 +142,13 @@ class World:
                 if tile[0]=='S':
                     # (TILE_SIZE * self.row_count - ((TILE_SIZE * (self.row_count)) - (TILE_SIZE * (self.row_count + 1))))
                     shark=Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'shark', 2, self.game, 3, 1)
-                    self.sharks.add(shark)
+                    self.enemies.add(shark)
 
                     self.tile_count += 1
 
                 if tile[0]=='G':
                     goblin = Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'goblin', 2, self.game, 5, 2, f'assets/enemy/goblin_walk.png')
-                    self.sharks.add(goblin)
+                    self.enemies.add(goblin)
 
                     self.tile_count += 1
 
@@ -192,7 +192,6 @@ class Enemy(pygame.sprite.Sprite):
         self.counter = 0
 
         if spritesheet!=None:
-            self.spritesheet = pygame.image.load(spritesheet)
             self.image_size = [42, 37]
             self.walking_sprites = SpriteSheet(pygame.image.load(spritesheet).convert_alpha())
             self.animation_steps = 6
