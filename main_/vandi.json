@@ -4,9 +4,19 @@
       "damage" : 5, 
       "img_path" : "assets/items/spear.png", 
       "name" : "spear"
+    }, 
+    {
+      "damage" : 2, 
+      "img_path" : "assets/items/rapier.png", 
+      "name" : "rapier"
+    }, 
+    {
+      "damage" : 2, 
+      "img_path" : "assets/items/rapier.png", 
+      "name" : "rapier"
     }
   ], 
-  "level_count" : 1, 
+  "level_count" : 2, 
   "name" : "Vandi", 
   "weapon" : {
     "damage" : 1, 

@@ -194,20 +194,25 @@ class World:
             self.tile_count=0
             for tile in row:
                 if tile[0]=='A':
-                    self.tile_count+=int(tile[1:])
+                    if tile[1:].isdigit():
+                        self.tile_count+=int(tile[1:])
 
                 if tile[0]=='B':
-                    for i in range(int(tile[1:])):
-                        self.tile_load(self.block, 'block')
+                    if tile[1:].isdigit():
+                        for i in range(int(tile[1:])):
+                            self.tile_load(self.block, 'block')
 
                 if tile[0]=='M':
-                    for i in range(int(tile[1:])):
-                        self.tile_load(self.metal, 'metal')
+                    if tile[1:].isdigit():
+                        for i in range(int(tile[1:])):
+                            self.tile_load(self.metal, 'metal')
 
                 if tile[0]=='S':
-                    # (TILE_SIZE * self.row_count - ((TILE_SIZE * (self.row_count)) - (TILE_SIZE * (self.row_count + 1))))
-                    shark=Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'shark', 2, self.game, 3, 1)
-                    self.enemies.add(shark)
+                    if tile[1:].isdigit():
+                        for i in range(int(tile[1:])):
+                            # (TILE_SIZE * self.row_count - ((TILE_SIZE * (self.row_count)) - (TILE_SIZE * (self.row_count + 1))))
+                            shark=Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'shark', 2, self.game, 3, 1)
+                            self.enemies.add(shark)
 
                     self.tile_count += 1
 
@@ -450,7 +455,7 @@ class Enemy(pygame.sprite.Sprite):
                 self.game.items.append(drop)
                 print('added strong item')
             elif randint(1, 100) >= 85 and self.name == 'goblin':
-                drop = Item('flamberge', 'assets/items/flamberge.png', 2)
+                drop = Item('flamberge', 'assets/items/flamberge.png', 3)
                 drop.rect.center = self.rect.center
                 self.game.items.append(drop)
             elif randint(1, 100) >= 75:
@@ -579,6 +584,3 @@ class Boss(Enemy):
                 self.image = self.images_left[self.index]
 
             self.rect.move_ip(self.velocity[0], 0)
-
-if __name__ == "__main__":
-    world = World()
