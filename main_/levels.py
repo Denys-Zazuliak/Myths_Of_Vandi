@@ -101,15 +101,6 @@ def load_levels(level_count, game):
 
     return world, level, bg
 
-def tile_load(self, image, material):
-    x = TILE_SIZE * self.tile_count
-    y = TILE_SIZE * self.row_count
-
-    tile = Tile(image, x, y, material)
-    self.tile_list.append(tile)
-
-    self.tile_count = self.tile_count + 1
-
 def rect_collision(rect1, rect2):
     if rect1.right>=rect2.left and rect1.left<=rect2.right and rect1.bottom>=rect2.top and rect1.top<=rect2.bottom:
         colliding=True
@@ -122,12 +113,12 @@ class World:
     def __init__(self, data, parent_class):
         self.tile_list=[]
         self.data = data
-        self.game=parent_class
+        self.game = parent_class
 
         self.block=pygame.image.load(f'assets/blocks/block.jpg')
         self.metal=pygame.image.load(f'assets/blocks/metal.png')
         self.finish = pygame.image.load(f'assets/blocks/metal.png')
-        self.sharks=pygame.sprite.Group()
+        self.enemies=pygame.sprite.Group()
 
         self.tile_count=0
         self.row_count=0
@@ -142,32 +133,41 @@ class World:
 
                 if tile[0]=='B':
                     for i in range(int(tile[1:])):
-                        tile_load(self, self.block, 'block')
+                        self.tile_load(self.block, 'block')
 
                 if tile[0]=='M':
                     for i in range(int(tile[1:])):
-                        tile_load(self, self.metal, 'metal')
-    
+                        self.tile_load(self.metal, 'metal')
+
                 if tile[0]=='S':
                     # (TILE_SIZE * self.row_count - ((TILE_SIZE * (self.row_count)) - (TILE_SIZE * (self.row_count + 1))))
                     shark=Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'shark', 2, self.game, 3, 1)
-                    self.sharks.add(shark)
+                    self.enemies.add(shark)
 
                     self.tile_count += 1
 
                 if tile[0]=='G':
                     goblin = Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'goblin', 2, self.game, 5, 2, f'assets/enemy/goblin_walk.png')
-                    self.sharks.add(goblin)
+                    self.enemies.add(goblin)
 
                     self.tile_count += 1
 
                 if tile[0]=='F':
                     for i in range(int(tile[1:])):
-                        tile_load(self, self.finish, 'finish')
+                        self.tile_load(self.finish, 'finish')
 
             self.row_count+=1
 
         return self.tile_list
+
+    def tile_load(self, image, material):
+        x = TILE_SIZE * self.tile_count
+        y = TILE_SIZE * self.row_count
+
+        tile = Tile(image, x, y, material)
+        self.tile_list.append(tile)
+
+        self.tile_count += 1
 
 class Tile:
     '''
@@ -192,7 +192,6 @@ class Enemy(pygame.sprite.Sprite):
         self.counter = 0
 
         if spritesheet!=None:
-            self.spritesheet = pygame.image.load(spritesheet)
             self.image_size = [42, 37]
             self.walking_sprites = SpriteSheet(pygame.image.load(spritesheet).convert_alpha())
             self.animation_steps = 6

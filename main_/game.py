@@ -16,6 +16,8 @@ Methods
 
 """
 
+
+
 from pygame import mixer
 from random import randint
 from utils import *
@@ -56,13 +58,13 @@ class Game:
         running : bool
             a variable that determines whether the game loop should carry on
 
-        volume : int
+        volume : float
             a variable responsible for the volume of the sounds and music in-game
 
-        gravity : int
+        gravity : float
             a variable responsible for the strength of gravity in the game
 
-        level_count :
+        level_count : int
             a variable used to determine what level the player is currently on
 
         level_count_check : int
@@ -164,15 +166,15 @@ class Game:
         while self.running:
             keys = self.input_handling()
 
-            if self.menu.pause:
-                self.menu.pause_menu()
+            if self.menu.ending_screen_flag:
+                self.menu.ending_screen()
             elif self.menu.death_screen_flag:
                 self.bg_music_channel.pause()
                 self.menu.death_screen()
+            elif self.menu.pause_flag:
+                self.menu.pause_menu()
             elif self.menu.inventory_flag:
                 self.menu.inventory_menu()
-            elif self.menu.ending_screen_flag:
-                self.menu.ending_screen()
             else:
                 self.draw()
                 # if self.world != None:
@@ -203,7 +205,7 @@ class Game:
                 self.vandi.not_press = True
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    self.menu.pause = True
+                    self.menu.pause_flag = True
                 if event.key == pygame.K_i:
                     if not self.menu.inventory_flag:
                         self.menu.inventory_flag = True
@@ -230,10 +232,10 @@ class Game:
 
         for projectile in self.vandi.projectiles:
             projectile.move()
-            projectile.enemy_collision(self.world.sharks)
+            projectile.enemy_collision(self.world.enemies)
             projectile.collision(self.world)
 
-        for enemy in self.world.sharks:
+        for enemy in self.world.enemies:
             enemy.attack()
             if not enemy.tracking:
                 enemy.update()
@@ -261,13 +263,13 @@ class Game:
                 tile.img_rect.x = tile.img_rect.x + self.screen_scroll
                 self.screen.blit(tile.img, tile.img_rect)
 
-            for shark in self.world.sharks:
+            for shark in self.world.enemies:
                 shark.rect.x += self.screen_scroll
                 if shark.name=='goblin':
                     # surf=pygame.Surface((64,128), pygame.SRCALPHA)
                     # surf.fill((255,255,255))
                     self.screen.blit(shark.image, shark.rect)
-            self.world.sharks.draw(self.screen)
+            self.world.enemies.draw(self.screen)
 
             #dropped item
             for item in self.items:
@@ -358,7 +360,7 @@ class Player:
             stores both components of the character's velocity (in pixels)
 
         direction : int
-            shows which way the character is looking (1 means to the right, 0 means to the left)
+            shows which way the character is looking (1 means to the right, -1 means to the left)
 
         attackHitbox : AttackHitbox
             an instance of the attack hitbox class,
@@ -686,13 +688,13 @@ class AttackHitbox():
             self.rect = self.image.get_rect(midright=self.attacker.rect.midleft)
 
     def hit_collision(self):
-        for enemy in self.attacker.game.world.sharks:
+        for enemy in self.attacker.game.world.enemies:
             if not enemy.invulnerable and rect_collision(enemy.rect, self.rect):
                 enemy.health -= self.attacker.game.menu.inventory.weapon.damage
                 enemy.invulnerable = True
                 print(enemy.health)
                 if enemy.check_dead():
-                    self.attacker.game.world.sharks.remove(enemy)
+                    self.attacker.game.world.enemies.remove(enemy)
 
                 self.attacker.game.misc_channel.play(pygame.mixer.Sound('assets/audio/hit.mp3'), 1)
 
@@ -723,64 +725,6 @@ class AttackHitbox():
             self.rect.y = self.attacker.rect.top
 
 class Projectile():
-    """
-    The class to represent a projectile fired by the player.
-
-    Attributes
-    ----------
-        images_right : list[Surface]
-            list of projectile sprites for when it's moving right
-
-        images_left : list[Surface]
-            list of projectile sprites for when it's moving left
-
-        index : int
-            index of the current sprite in the list
-
-        counter : int
-            helps to keep track of how often to update the sprite image
-
-        image_size : list[int]
-            the size of the sprite image as it is in the spritesheet (in pixels)
-
-        spritesheet : SpriteSheet
-            an instance of the spritesheet class,
-            stores the image of the projectile's sprites
-
-        animation_steps : int
-            tells how many different sprites are in the spritesheet
-
-        rect : Rect
-            an instance of the rect class,
-            this is a rectangle object that simulates the hitbox of the projectile
-
-        attacker : Player
-            the player who fired the projectile
-
-        velocity : int
-            stores the horizontal component of the projectile’s velocity (in pixels)
-
-        direction : int
-            shows which way the projectile is moving (1 means right, -1 means left)
-
-        img : Surface
-            the current sprite of the projectile
-
-    Methods
-    -------
-        __init__(spritesheet, attacker):
-            constructs all the necessary attributes for the projectile class
-
-        move():
-            moves the projectile and updates its animation
-
-        collision(world):
-            checks collision with screen edges and tiles, removes projectile if hit
-
-        enemy_collision(enemies):
-            checks collision with enemies, deals damage and removes projectile if hit
-    """
-
     def __init__(self, spritesheet, attacker):
         self.images_right = []
         self.images_left = []
@@ -788,6 +732,7 @@ class Projectile():
         self.counter = 0
 
         # change the image_size and scale
+
         self.image_size = [34, 17]
         self.spritesheet = SpriteSheet(pygame.image.load(spritesheet).convert_alpha())
         self.animation_steps = 5
@@ -854,12 +799,322 @@ class Projectile():
                 enemy.invulnerable = True
                 print(enemy.health)
                 if enemy.check_dead():
-                    self.attacker.game.world.sharks.remove(enemy)
+                    self.attacker.game.world.enemies.remove(enemy)
                 self.attacker.projectiles.remove(self)
                 del self
                 break
 
             enemy.invulnerability_update()
+
+
+class Text:
+    def __init__(self, text, size, coordinates, colour=(255, 255, 255)):
+        if '\n' in text:
+            self.lines = text.split("\n")
+        else:
+            self.lines = None
+
+        self.font = pygame.font.SysFont('Arial', size)
+        self.text = self.font.render(text, True, colour)
+        self.coordinates = coordinates
+        self.text_rect = self.text.get_rect(center=self.coordinates)
+
+    # def draw(self, surface):
+    #     temp_surface = pygame.Surface(self.text.get_size())
+    #     temp_surface.fill((192, 192, 192))
+    #     temp_surface.blit(self.text, self.text_rect)
+    #     surface.blit(temp_surface, (0, 0))
+
+    def draw(self, surface):
+        if self.lines!=None:
+            x, y = self.coordinates[0], self.coordinates[1]
+            line_height = self.font.get_height()
+
+            for i, line in enumerate(self.lines):
+                rendered_line = self.font.render(line, True, (255, 255, 255))
+                surface.blit(rendered_line, (x, y + i * line_height))
+        else:
+            pos = (self.text_rect.x, self.text_rect.y)
+            surface.blit(self.text, pos)
+
+
+class Menu:
+    def __init__(self, parent_class):
+        self.game = parent_class
+        self.pause_bg = pygame.image.load('assets/menu/background.png')
+        self.pause_bg = pygame.transform.scale(self.pause_bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.pause_bg_rect = self.pause_bg.get_rect()
+        self.start_bg = pygame.image.load('assets/menu/start_screen.png')
+        self.start_bg = pygame.transform.scale(self.start_bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.start_bg_rect = self.start_bg.get_rect()
+        self.death_bg = pygame.image.load('assets/menu/death_screen.png')
+        self.death_bg = pygame.transform.scale(self.death_bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.death_bg_rect = self.death_bg.get_rect()
+
+        self.start = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/start.png', 5)
+        self.resume = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 250, f'assets/menu/buttons/resume.png', 5)
+        self.settings = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 150, f'assets/menu/buttons/settings.png', 5)
+        self.save = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) - 50, f'assets/menu/buttons/save.png', 5)
+        self.load = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 50, f'assets/menu/buttons/restart.png', 5)
+        self.exit = Button(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 150, f'assets/menu/buttons/quit.png', 5)
+        self.sounds_plus = Button((SCREEN_WIDTH // 2) + 300, (SCREEN_HEIGHT // 2) - 175,
+                                  f'assets/menu/buttons/arrow_up.png', 5)
+        self.sounds_minus = Button((SCREEN_WIDTH // 2) + 300, (SCREEN_HEIGHT // 2) - 75,
+                                   f'assets/menu/buttons/arrow_down.png', 5)
+
+        self.starting_menu_flag = True
+        self.settings_flag = False
+        self.death_screen_flag = False
+        self.ending_screen_flag = False
+        self.inventory_flag = False
+        self.tooltip_flag = False
+        self.pause = False
+        self.saved = 0
+
+        self.last_update = 0
+
+        self.inventory = Inventory(27)
+        self.inventory.add(Item('spear', 'assets/items/spear.png', 5))
+
+        self.tooltip_surf = pygame.Surface((500,200), pygame.SRCALPHA).convert_alpha()
+        self.tooltip_rect = self.tooltip_surf.get_rect()
+        self.tooltip_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+
+    def start_menu(self):
+        if self.settings_flag:
+            self.settings_menu()
+
+        else:
+            self.buttons = [self.start, self.settings, self.load, self.exit]
+            # title = Text('The Myths Of Vandi', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
+
+            self.game.screen.blit(self.start_bg, self.start_bg_rect)
+            # self.game.screen.fill((0, 0, 0))
+            # title.draw(self.game.screen)
+            for button in self.buttons:
+                button.collision = True
+                button.draw_and_collision(self.game.screen)
+
+            if self.start.active:
+                self.starting_menu_flag = False
+
+            if self.settings.active:
+                self.settings_flag = True
+
+            if self.load.active:
+                self.loading()
+
+                self.starting_menu_flag = False
+
+            if self.exit.active:
+                self.game.running = False
+                self.starting_menu_flag = False
+
+            for button in self.buttons:
+                button.collision=False
+
+    def pause_menu(self):
+        self.pause = True
+        self.buttons = [self.resume, self.settings, self.save, self.load, self.exit]
+        paused = Text('Paused', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
+
+        self.game.screen.blit(self.pause_bg, self.pause_bg_rect)
+        # self.game.screen.fill((0, 0, 0))
+        paused.draw(self.game.screen)
+        for button in self.buttons:
+            button.collision = True
+            button.draw_and_collision(self.game.screen)
+
+        if self.resume.active and not self.settings_flag:
+            self.pause = False
+
+        if self.settings.active:
+            self.settings_flag = True
+
+        if self.settings_flag:
+            self.settings_menu()
+
+        if self.save.active:
+            self.saving()
+
+        if self.saved*FPS>0:
+            text = Text('Saved Successfully', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 400))
+            text.draw(self.game.screen)
+            self.saved-=1
+
+        if self.load.active:
+            self.loading()
+
+            self.pause = False
+
+        if self.exit.active:
+            self.game.running = False
+            self.pause = False
+
+        for button in self.buttons:
+            button.collision = False
+
+    def settings_menu(self):
+        self.buttons = [self.resume, self.sounds_plus, self.sounds_minus]
+        settings = Text('Settings', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
+        volume = Text(f'Volume: {int(self.game.volume * 100)}', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 125))
+
+        self.game.screen.blit(self.pause_bg, self.pause_bg_rect)
+        # self.game.screen.fill((0, 0, 0))
+        settings.draw(self.game.screen)
+        volume.draw(self.game.screen)
+        for button in self.buttons:
+            button.collision = True
+            button.draw_and_collision(self.game.screen)
+            time.sleep(0.0228)
+
+        if self.resume.active:
+            self.settings_flag = False
+            time.sleep(0.1)
+
+        if self.sounds_plus.active:
+            if self.game.volume + 0.05 <= 1:
+                self.game.volume += 0.05
+            self.game.bg_music_channel.set_volume(self.game.volume)
+            self.game.attack_channel.set_volume(self.game.volume)
+            self.game.misc_channel.set_volume(self.game.volume)
+
+        if self.sounds_minus.active:
+            if self.game.volume - 0.05 >= 0:
+                self.game.volume -= 0.05
+            self.game.bg_music_channel.set_volume(self.game.volume)
+            self.game.attack_channel.set_volume(self.game.volume)
+            self.game.misc_channel.set_volume(self.game.volume)
+
+        for button in self.buttons:
+            button.collision = False
+            button.active = False
+
+    def death_screen(self):
+        self.buttons = [self.settings, self.load, self.exit]
+        # title = Text('Failure', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
+
+        self.game.screen.blit(self.death_bg, self.death_bg_rect)
+        # self.game.screen.fill((0, 0, 0))
+        # title.draw(self.game.screen)
+        for button in self.buttons:
+            button.collision = True
+            button.draw_and_collision(self.game.screen)
+
+        if self.settings.active:
+            self.settings_flag = True
+        if self.settings_flag:
+            self.settings_menu()
+
+        if self.load.active:
+            self.loading()
+
+            self.death_screen_flag = False
+
+        if self.exit.active:
+            self.game.running = False
+            self.death_screen_flag = False
+
+        for button in self.buttons:
+            button.collision = False
+
+    def inventory_menu(self):
+        self.game.screen.fill((0,0,0))
+        self.inventory.draw(self.game.screen)
+
+        mouse_pos = pygame.mouse.get_pos()
+        count=0
+        delay = 500
+        current_time = pygame.time.get_ticks()
+
+        if self.last_update == 0:
+            self.last_update = current_time
+
+        for item in self.inventory.slots:
+            if item!=None:
+                if point_collision(mouse_pos, item.rect) and pygame.mouse.get_pressed()[0]:
+                    if current_time - self.last_update > delay:
+                        self.inventory.equip(count)
+                        self.last_update = current_time
+
+                if point_collision(mouse_pos, item.rect) and pygame.mouse.get_pressed()[2]:
+                    self.inventory.drop(item)
+                if point_collision(mouse_pos, item.rect):
+                    self.tooltip_flag=True
+                    self.tooltip_text = Text(item.details(), 50, ((SCREEN_WIDTH // 2-self.tooltip_rect.center[0], SCREEN_HEIGHT // 2-self.tooltip_rect.center[1])), (255,255,255))
+                    break
+                else:
+                    self.tooltip_flag=False
+            count += 1
+
+        if self.tooltip_flag:
+            self.tooltip_surf.fill((255,255,255,100))
+            self.tooltip_text.draw(self.tooltip_surf)
+            self.game.screen.blit(self.tooltip_surf, self.tooltip_rect)
+
+    def ending_screen(self):
+        self.buttons = [self.exit]
+        text = Text('Thank you for playing', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        self.game.screen.fill((0,0,0))
+        text.draw(self.game.screen)
+
+        for button in self.buttons:
+            button.collision = True
+            button.draw_and_collision(self.game.screen)
+
+        if self.exit.active:
+            self.game.running = False
+            self.ending_screen_flag = False
+
+    def saving(self):
+        item_list=[]
+        for item in self.inventory.slots:
+            if item != None:
+                item_list.append({'name': item.name, 'img_path': item.img_path, 'damage': item.damage})
+        write_json({'name': 'Vandi', 'level_count': self.game.level_count, 'inventory': item_list, 'weapon': {'name': self.inventory.weapon.name, 'img_path': self.inventory.weapon.img_path, 'damage': self.inventory.weapon.damage}}, 'vandi')
+        self.saved=10
+
+    def loading(self):
+        self.game.bg_music_channel.unpause()
+
+        for item in self.inventory.slots:
+            self.inventory.drop(item)
+        data = read_json('vandi')
+        for dict in data['inventory']:
+            self.inventory.add(Item(dict['name'], dict['img_path'], dict['damage']))
+        self.inventory.weapon = Item(data['weapon']['name'], data['weapon']['img_path'], data['weapon']['damage'])
+        self.game.level_count = data['level_count']
+        self.game.level_count_check = 0
+
+        if self.game.level_count != self.game.level_count_check:
+            self.game.level_count_check = self.game.level_count
+            self.game.level_load()
+
+
+class Button:
+    def __init__(self, x, y, image, scale):
+        self.image = pygame.image.load(image)
+        width = self.image.get_width()
+        height = self.image.get_height()
+        self.image = pygame.transform.scale(self.image, (int(width * scale), int(height * scale)))
+        self.rect = self.image.get_rect(center=(x, y))
+        self.active = False
+        self.collision = False
+
+    def draw_and_collision(self, surface):
+        surface.blit(self.image, (self.rect.x, self.rect.y))
+
+        mouse_pos = pygame.mouse.get_pos()
+
+        self.active = False
+        if point_collision(mouse_pos, self.rect) and self.collision:
+            if pygame.mouse.get_pressed()[0] and not self.active:
+                self.active = True
+
+        return self.active
+
+    def set_pos(self, pos):
+        self.rect.center=pos
 
 if __name__ == '__main__':
     game = Game()
