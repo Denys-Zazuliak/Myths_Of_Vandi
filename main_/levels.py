@@ -221,6 +221,9 @@ class World:
                     for i in range(int(tile[1:])):
                         self.tile_load(self.finish, 'finish')
 
+                else:
+                    pass
+
             self.row_count+=1
 
         return self.tile_list
@@ -576,3 +579,6 @@ class Boss(Enemy):
                 self.image = self.images_left[self.index]
 
             self.rect.move_ip(self.velocity[0], 0)
+
+if __name__ == "__main__":
+    world = World()
