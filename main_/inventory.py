@@ -7,6 +7,38 @@ SCREEN_WIDTH = 1280  #1600
 SCREEN_HEIGHT = 960  #900
 
 class Item:
+    """
+    The class to represent an item that can be held in the inventory.
+
+    Attributes
+    ----------
+        name : str
+            shows what type of weapon the item is
+
+        img_path : str
+            points to the sprite file in the directories,
+            used when saving
+
+        img : Surface
+            an instance of the surface class,
+            the model of the item
+
+        rect : Rect
+            an instance of the rect class,
+            helps with displaying the item in the inventory and when dropped by the enemies
+
+        damage : int
+            determines how much damage this weapon deals if equipped
+
+    Methods
+    -------
+        draw(screen, x, y):
+            draws the item onto the given surface at the given coordinates
+
+        details(): Str
+            returns a formatted string with the item's name and damage value
+    """
+
     def __init__(self, name, img, damage):
         self.name = name
         self.img_path = img
@@ -29,6 +61,52 @@ class Item:
     #             self.rect.y += world.game.gravity
 
 class Inventory:
+    """
+    The class to represent the player's inventory.
+
+    Attributes
+    ----------
+        max_size : int
+            maximum amount of items that can fit in the inventory
+
+        rows : int
+            how many rows the inventory has
+
+        columns : int
+            how many columns the inventory has
+
+        slots : list[Item/None]
+            represents each slot of the inventory
+
+        slot_image : Surface
+            an instance of the surface class,
+            the image of each repeating slot in the inventory menu
+
+        weapon : Item
+            an instance of the item class,
+            the currently equipped item by the player
+
+    Methods
+    -------
+        add(item):
+            adds an item to the first available empty slot
+
+        drop(item):
+            removes an item from its slot, setting that slot to None
+
+        draw(screen):
+            draws all inventory slots and their contained items onto the screen
+
+        occupied(slot):
+            checks if the given slot is holding an item
+
+        is_full():
+            check if the inventory is full
+
+        equip(new_weapon_index):
+            swaps the currently equipped weapon with the given item
+    """
+
     def __init__(self, max_size, slots=None):
         if slots is None:
             slots=[]

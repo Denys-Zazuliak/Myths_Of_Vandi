@@ -147,7 +147,7 @@ class World:
                 if tile[0]=='M':
                     for i in range(int(tile[1:])):
                         tile_load(self, self.metal, 'metal')
-
+    
                 if tile[0]=='S':
                     # (TILE_SIZE * self.row_count - ((TILE_SIZE * (self.row_count)) - (TILE_SIZE * (self.row_count + 1))))
                     shark=Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'shark', 2, self.game, 3, 1)
