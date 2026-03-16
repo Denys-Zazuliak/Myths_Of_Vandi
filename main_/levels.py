@@ -83,9 +83,32 @@ level_dict={
 
 # make a level that goes from being up to going down
 
-# make world load recursive
-
 def load_levels(level_count, game):
+    """
+    Loads the layout, background and world of the current level.
+
+    Parameters
+    ----------
+    level_count : int
+        the current level number
+    game : Game
+        an instance of the game class,
+        gives access to the main game class attributes such as menu and items
+
+    Returns
+    -------
+    world : World
+        an instance of the world class,
+        responsible for transformation of the level layout into a usable list of tiles
+
+    level : list[Tile]
+        a list of all tiles in the level
+
+    bg : Surface
+        an instance of the surface class,
+        contains the background of the level
+    """
+
     bg = None
     world = None
     level = None
@@ -101,15 +124,57 @@ def load_levels(level_count, game):
 
     return world, level, bg
 
-def rect_collision(rect1, rect2):
-    if rect1.right>=rect2.left and rect1.left<=rect2.right and rect1.bottom>=rect2.top and rect1.top<=rect2.bottom:
-        colliding=True
-    else:
-        colliding=False
-
-    return colliding
-
 class World:
+    """
+    Responsible for transformation of the level layout into a usable list of tiles
+
+    Attributes
+    ----------
+        tile_list : list[Tile]
+            contains every single tile in the level
+
+        data : list[list[str]]
+            the raw layout data used to construct the level
+
+        game : Game
+            an instance of the game class,
+            gives access to the main game class attributes
+
+        block : Surface
+            an instance of the surface class,
+            the image used to represent a block tile
+
+        metal : Surface
+            an instance of the surface class,
+            the image used to represent a metal tile
+
+        finish : Surface
+            an instance of the surface class,
+            the image used to represent a finish tile
+
+        enemies : Group
+            an instance of the sprite group class,
+            contains every enemy in the level
+
+        tile_count : int
+            keeps track of the current tile's horizontal position when loading the level
+
+        row_count : int
+            keeps track of the current row's vertical position when loading the level
+
+    Methods
+    -------
+        __init__(data, parent_class):
+            constructs all the necessary attributes for the world class
+
+        load_level():
+            iterates through the layout data and creates tiles and enemies,
+            returns a list of all tiles in the level
+
+        tile_load(image, material):
+            creates a tile at the current position and appends it to tile_list
+    """
+
     def __init__(self, data, parent_class):
         self.tile_list=[]
         self.data = data
@@ -172,7 +237,21 @@ class World:
 class Tile:
     '''
     A helping class which makes it easier to identify what kind of tile it is and its position
+
+    Attributes
+    ----------
+    img: Surface
+        an instance of the surface class,
+        indicates what to draw to represent this tile
+
+    img_rect: Rect
+        an instance of the rect class,
+        helps with positioning the tile on the screen
+
+    material: Str
+        helps identify what tile it is
     '''
+
     def __init__(self, image, x, y, material):
         self.img = pygame.transform.scale(image, (TILE_SIZE, TILE_SIZE))
         self.img = pygame.transform.scale(image, (TILE_SIZE, TILE_SIZE))
@@ -182,6 +261,98 @@ class Tile:
         self.material = material
 
 class Enemy(pygame.sprite.Sprite):
+    """
+    The class to represent an enemy character in the game.
+
+    Attributes
+    ----------
+        name : str
+            contains the type of the enemy
+
+        images_right : list[Surface]
+            list of enemy sprites for when they are going right
+
+        images_left : list[Surface]
+            list of enemy sprites for when they are going left
+
+        index : int
+            index of the enemy's sprite in the list
+
+        counter : int
+            helps to keep track of how often to update the sprite image
+
+        image_size : list[int]
+            the size of the sprite image as it is in the spritesheet (in pixels)
+
+        walking_sprites : SpriteSheet
+            an instance of the spritesheet class,
+            stores the image of the enemy's sprites
+
+        animation_steps : int
+            tells how many different sprites are in the spritesheet
+
+        game : Game
+            an instance of the game class,
+            gives access to the main game class attributes
+
+        image : Surface
+            an instance of the surface class,
+            the current sprite of the enemy
+
+        rect : Rect
+            an instance of the rect class,
+            this is a rectangle object that simulates the hitbox of an enemy
+
+        velocity : list[int]
+            stores both components of the enemy's velocity (in pixels)
+
+        distance_tracker : int
+            tracks distance walked in one direction
+
+        direction : int
+            shows which way the enemy is looking (1 means to the right, -1 means to the left)
+
+        tracking : bool
+            shows if the enemy is currently chasing the player
+
+        health : int
+            enemy's HP
+
+        invulnerable : bool
+            helps determine if the enemy should be able to get hit
+
+        i_frames : int
+            a counter of how many invincibility frames have passed
+
+        damage : int
+            how much damage does the enemy's hit deals
+
+    Methods
+    -------
+        __init__(x, y, name, size_scale, game, health, damage, spritesheet):
+            constructs all the necessary attributes for the enemy class
+
+        update():
+            moves the enemy back and forth and updates its animation
+
+        check_dead():
+            checks the enemy's health and triggers item drops if health is below zero,
+            returns True if the enemy is dead
+
+        item_drops():
+            randomly selects and spawns an item drop at the enemy's position on death
+
+        invulnerability_update():
+            increments the invincibility frame count and resets invulnerability when expired
+
+        attack():
+            checks if the player is within the vision box and chases them,
+            deals damage to the player on contact
+
+        collision(world):
+            checks collision with every tile in the level and applies gravity
+    """
+
     def __init__(self, x, y, name, size_scale, game, health, damage, spritesheet=None):
         pygame.sprite.Sprite.__init__(self)
         self.name = name
@@ -372,4 +543,36 @@ class Enemy(pygame.sprite.Sprite):
         self.velocity[1] += self.game.gravity
 
 class Boss(Enemy):
-    pass
+    def __init__(self, x, y, name, size_scale, game, health, damage, spritesheet):
+        super().__init__(x, y, name, size_scale, game, health, damage, spritesheet)
+
+    def update(self):
+        self.distance_tracker += self.velocity[0]
+
+        if abs(self.distance_tracker) >= 128:
+            self.velocity[0] *= -1
+            self.distance_tracker = 0
+
+        if self.velocity[0] < 0:
+            self.direction = -1
+        elif self.velocity[0] > 0:
+            self.direction = 1
+
+        self.counter += 1
+        if self.counter > 10:
+            self.counter = 0
+
+            if self.direction>0:
+                self.index += 1
+                if self.index >= len(self.images_right):
+                    self.index = 0
+                self.image = self.images_right[self.index]
+
+
+            elif self.direction<0:
+                self.index += 1
+                if self.index >= len(self.images_left):
+                    self.index = 0
+                self.image = self.images_left[self.index]
+
+            self.rect.move_ip(self.velocity[0], 0)

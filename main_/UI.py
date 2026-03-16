@@ -152,7 +152,7 @@ class Menu:
         tooltip_flag : bool
             checks if a tooltip should be displayed
 
-        pause : bool
+        pause_flag : bool
             checks if the pause menu should be displayed
 
         saved : int
@@ -229,7 +229,7 @@ class Menu:
         self.ending_screen_flag = False
         self.inventory_flag = False
         self.tooltip_flag = False
-        self.pause = False
+        self.pause_flag = False
         self.saved = 0
 
         self.last_update = 0
@@ -275,7 +275,7 @@ class Menu:
                 button.collision = False
 
     def pause_menu(self):
-        self.pause = True
+        self.pause_flag = True
         self.buttons = [self.resume, self.settings, self.save, self.load, self.exit]
         paused = Text('Paused', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
@@ -287,7 +287,7 @@ class Menu:
             button.draw_and_collision(self.game.screen)
 
         if self.resume.active and not self.settings_flag:
-            self.pause = False
+            self.pause_flag = False
 
         if self.settings.active:
             self.settings_flag = True
@@ -306,11 +306,11 @@ class Menu:
         if self.load.active:
             self.loading()
 
-            self.pause = False
+            self.pause_flag = False
 
         if self.exit.active:
             self.game.running = False
-            self.pause = False
+            self.pause_flag = False
 
         for button in self.buttons:
             button.collision = False
