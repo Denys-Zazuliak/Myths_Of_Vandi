@@ -217,7 +217,7 @@ class World:
                     self.tile_count += 1
 
                 if tile[0]=='G':
-                    goblin = Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'goblin', 2, self.game, 5, 2, f'assets/enemy/goblin_walk.png')
+                    goblin = Boss(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'goblin', 2, self.game, 5, 2, f'assets/enemy/goblin_walk.png')
                     self.enemies.add(goblin)
 
                     self.tile_count += 1
