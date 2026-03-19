@@ -3,8 +3,8 @@ from utils import rect_collision
 
 item_per_row = 9
 slot_size = (64, 64)
-SCREEN_WIDTH = 1280  #1600
-SCREEN_HEIGHT = 960  #900
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 960
 
 class Item:
     """
@@ -53,12 +53,6 @@ class Item:
     def details(self):
         return f"""Name: {self.name}\nDamage: {self.damage}"""
 
-    # def collision(self, world):
-    #     for tile in world.tile_list:
-    #         # vertical collision
-    #         gravity_rect = pygame.Rect((self.rect.x, self.rect.y + world.game.gravity), (self.rect.width, self.rect.height))
-    #         if not rect_collision(tile.img_rect, gravity_rect):
-    #             self.rect.y += world.game.gravity
 
 class Inventory:
     """
@@ -139,7 +133,6 @@ class Inventory:
                     if index >= len(self.slots):
                         index = 0
             else:
-                print('inventory full')
                 break
 
     def drop(self, item):

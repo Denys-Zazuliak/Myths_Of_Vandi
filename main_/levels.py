@@ -3,56 +3,14 @@ from random import randint
 from inventory import Item
 from utils import *
 
-SCREEN_WIDTH = 1280 #1600
-SCREEN_HEIGHT = 960 #900
-TILE_SIZE = 64 #50
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 960
+TILE_SIZE = 64
 SCROLL_THRESH = SCREEN_WIDTH//4
 FPS = 60
 INVULNERABILITY_TIME = 0.5
 
 level_dict={
-    1: {'layout':[
-        ['B20'],
-        ['B1', 'A17', 'M1', 'B1'],
-        ['B1', 'A18', 'B1'],
-        ['B1', 'A18', 'B1'],
-        ['B1', 'A18', 'B1'],
-        ['B1', 'A9','S1','A8', 'B1'],
-        # ['B1', 'A18', 'B1'],
-        ['B1', 'A9', 'B1', 'A8', 'B1'],
-        ['B1', 'A18', 'B1'],
-        ['B1', 'A18', 'B1'],
-        ['B1', 'A18', 'B1'],
-        ['B5', 'A13', 'S1', 'B1'],
-        ['A16', 'B4'],
-        ['A15', 'B5'],
-        ['A8', 'S1', 'A5', 'F1', 'B5'],
-        ['A3', 'B17'],
-        ],
-        'bg': 'new_assets/what_the_hell_am_i_doing.png'
-    },
-
-    2: {'layout':[
-        ['B20'],
-        ['B1', 'A17', 'M1', 'B1'],
-        ['B1', 'A18', 'B1'],
-        ['B1', 'A18', 'B1'],
-        ['B1', 'A18', 'B1'],
-        ['B1', 'A9', 'S1', 'A8', 'B1'],
-        # ['B1', 'A18', 'B1'],
-        ['B1', 'A9', 'B1', 'A8', 'B1'],
-        ['B1', 'A18', 'B1'],
-        ['B1', 'A18', 'B1'],
-        ['B1', 'A18', 'B1'],
-        ['B5', 'A13', 'S1', 'B1'],
-        ['A20'],
-        ['A20'],
-        ['A8', 'S1', 'A20', 'F1'],
-        ['A3', 'B200'],
-        ],
-        'bg': 'assets/menu/bg_sky.png'
-    },
-
     3: {'layout':[
         ['M65'],
         ['M1', 'A63', 'M1'],
@@ -66,22 +24,53 @@ level_dict={
         ['M1', 'A63', 'M1'],
         ['M1', 'A14', 'M2', 'A2', 'M1', 'A2', 'M2', 'A9', 'M3', 'A13', 'M1', 'A9', 'S1', 'A4', 'M1'],
         ['M8', 'A3', 'M3', 'A16', 'M1', 'A16', 'M1', 'A10', 'M2', 'A4', 'M1'],
-        ['M9', 'A20', 'M2', 'A13', 'M2', 'A16', 'F1', 'A1', 'M1'],
-        ['M10', 'A18', 'M3', 'A7', 'S1', 'A3', 'M1', 'A15', 'G1', 'A2', 'S1', 'F1', 'A1', 'M1'],
+        ['M9', 'A20', 'M2', 'A13', 'M2', 'A18', 'M1'],
+        ['M10', 'A18', 'M3', 'A7', 'S1', 'A3', 'M1', 'A15', 'G1', 'A2', 'S1', 'P1', 'A1', 'M1'],
         ['M17', 'A7', 'M41']
         ],
-        'bg': 'new_assets/bg_cyberpunk.png'
+        'bg': 'assets/menu/what_the_hell_am_i_doing.png'
+    },
+
+    2: {'layout':[
+        ['R20'],
+        ['R1', 'A18', 'R1'],
+        ['R1', 'A18', 'R1'],
+        ['R1', 'A18', 'R1'],
+        ['R1', 'A18', 'R1'],
+        ['R1', 'A9', 'S1', 'A8', 'R1'],
+        ['R1', 'A9', 'R1', 'A8', 'R1'],
+        ['R1', 'A18', 'R1'],
+        ['R1', 'A18', 'R1'],
+        ['R1', 'A18', 'R1'],
+        ['R5', 'A13', 'S1', 'R1'],
+        ['A20'],
+        ['A20'],
+        ['A8', 'S1', 'A20', 'P1'],
+        ['A3', 'R61'],
+        ],
+        'bg': 'assets/menu/bg_sky.png'
+    },
+
+    1: {'layout':[
+        ['A64'],
+        ['A64'],
+        ['A64'],
+        ['A64'],
+        ['A64'],
+        ['A64'],
+        ['A10','F1','A53'],
+        ['A10', 'D1', 'A53'],
+        ['A64'],
+        ['A64'],
+        ['D5', 'A13', 'F1', 'D1'],
+        ['A16', 'D4'],
+        ['A15', 'D5'],
+        ['A8', 'F1', 'A5', 'P1', 'D5'],
+        ['A3', 'D17'],
+        ],
+        'bg': 'assets/menu/background_layer_1.png'
     }
 }
-
-
-
-
-
-#https://www.spritefusion.com/editor
-# to preview levels
-
-# make a level that goes from being up to going down
 
 def load_levels(level_count, game):
     """
@@ -148,9 +137,9 @@ class World:
             an instance of the surface class,
             the image used to represent a metal tile
 
-        finish : Surface
+        portal : Surface
             an instance of the surface class,
-            the image used to represent a finish tile
+            the image used to represent a portal tile
 
         enemies : Group
             an instance of the sprite group class,
@@ -180,9 +169,11 @@ class World:
         self.data = data
         self.game = parent_class
 
-        self.block=pygame.image.load(f'assets/blocks/block.jpg')
-        self.metal=pygame.image.load(f'assets/blocks/metal.png')
-        self.finish = pygame.image.load(f'assets/blocks/metal.png')
+        self.block = pygame.image.load(f'assets/blocks/brick.png')
+        self.dirt = pygame.image.load(f'assets/blocks/dirt.png')
+        self.metal = pygame.image.load(f'assets/blocks/metal.png')
+        self.rock = pygame.image.load(f'assets/blocks/rock.png')
+        self.portal = pygame.image.load(f'assets/blocks/portal.png')
         self.enemies=pygame.sprite.Group()
 
         self.tile_count=0
@@ -202,6 +193,16 @@ class World:
                         for i in range(int(tile[1:])):
                             self.tile_load(self.block, 'block')
 
+                if tile[0]=='D':
+                    if tile[1:].isdigit():
+                        for i in range(int(tile[1:])):
+                            self.tile_load(self.dirt, 'dirt')
+
+                if tile[0]=='R':
+                    if tile[1:].isdigit():
+                        for i in range(int(tile[1:])):
+                            self.tile_load(self.rock, 'rock')
+
                 if tile[0]=='M':
                     if tile[1:].isdigit():
                         for i in range(int(tile[1:])):
@@ -210,21 +211,26 @@ class World:
                 if tile[0]=='S':
                     if tile[1:].isdigit():
                         for i in range(int(tile[1:])):
-                            # (TILE_SIZE * self.row_count - ((TILE_SIZE * (self.row_count)) - (TILE_SIZE * (self.row_count + 1))))
                             shark=Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'shark', 2, self.game, 3, 1)
                             self.enemies.add(shark)
 
                     self.tile_count += 1
 
                 if tile[0]=='G':
-                    goblin = Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'goblin', 2, self.game, 5, 2, f'assets/enemy/goblin_walk.png')
+                    goblin = Boss(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'goblin', 2, self.game, 5, 2, f'assets/enemy/goblin_walk.png', (35, 37))
                     self.enemies.add(goblin)
 
                     self.tile_count += 1
 
                 if tile[0]=='F':
+                    fox = Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'fox', 2, self.game, 2, 1, f'assets/enemy/fox_walk.png', (32,20))
+                    self.enemies.add(fox)
+
+                    self.tile_count += 1
+
+                if tile[0]=='P':
                     for i in range(int(tile[1:])):
-                        self.tile_load(self.finish, 'finish')
+                        self.tile_load(self.portal, 'portal')
 
                 else:
                     pass
@@ -241,6 +247,7 @@ class World:
         self.tile_list.append(tile)
 
         self.tile_count += 1
+
 
 class Tile:
     '''
@@ -267,6 +274,7 @@ class Tile:
         self.img_rect.x = x
         self.img_rect.y = y
         self.material = material
+
 
 class Enemy(pygame.sprite.Sprite):
     """
@@ -361,7 +369,7 @@ class Enemy(pygame.sprite.Sprite):
             checks collision with every tile in the level and applies gravity
     """
 
-    def __init__(self, x, y, name, size_scale, game, health, damage, spritesheet=None):
+    def __init__(self, x, y, name, size_scale, game, health, damage, spritesheet=None, size=(0,0)):
         pygame.sprite.Sprite.__init__(self)
         self.name = name
 
@@ -371,7 +379,7 @@ class Enemy(pygame.sprite.Sprite):
         self.counter = 0
 
         if spritesheet!=None:
-            self.image_size = [42, 37]
+            self.image_size = size
             self.walking_sprites = SpriteSheet(pygame.image.load(spritesheet).convert_alpha())
             self.animation_steps = 6
 
@@ -440,10 +448,8 @@ class Enemy(pygame.sprite.Sprite):
         dead=False
         if self.health <= 0:
             self.item_drops()
-
             del self
             dead=True
-            print('enemy dead')
 
         return dead
 
@@ -453,7 +459,6 @@ class Enemy(pygame.sprite.Sprite):
                 drop = Item('spear', 'assets/items/spear.png', 3)
                 drop.rect.center = self.rect.center
                 self.game.items.append(drop)
-                print('added strong item')
             elif randint(1, 100) >= 85 and self.name == 'goblin':
                 drop = Item('flamberge', 'assets/items/flamberge.png', 3)
                 drop.rect.center = self.rect.center
@@ -492,7 +497,6 @@ class Enemy(pygame.sprite.Sprite):
         vision_box = pygame.Rect(x, y, width, height)
         vision_box_surface = pygame.Surface((width, height)).convert_alpha()
         vision_box_surface.fill((250, 50, 50, 200))
-        # self.game.screen.blit(vision_box_surface, vision_box)
 
         if (not rect_collision(self.game.vandi.rect, self.rect)) and rect_collision(self.game.vandi.rect, vision_box):
             self.tracking=True
@@ -526,9 +530,7 @@ class Enemy(pygame.sprite.Sprite):
         if not self.game.vandi.invulnerable and rect_collision(self.game.vandi.rect, self.rect):
             self.game.vandi.health -= self.damage
             self.game.vandi.invulnerable = True
-            print(self.game.vandi.health)
             if self.game.vandi.check_dead():
-                # print('Game Over')
                 self.game.menu.death_screen_flag = True
                 self.game.misc_channel.play(pygame.mixer.Sound('assets/audio/game_over.mp3'))
 
@@ -550,9 +552,10 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.move_ip(self.velocity)
         self.velocity[1] += self.game.gravity
 
+
 class Boss(Enemy):
-    def __init__(self, x, y, name, size_scale, game, health, damage, spritesheet):
-        super().__init__(x, y, name, size_scale, game, health, damage, spritesheet)
+    def __init__(self, x, y, name, size_scale, game, health, damage, spritesheet, size):
+        super().__init__(x, y, name, size_scale, game, health, damage, spritesheet, size)
 
     def update(self):
         self.distance_tracker += self.velocity[0]

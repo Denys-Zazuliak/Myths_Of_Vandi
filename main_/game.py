@@ -1,32 +1,13 @@
 #AMONGUS
-
-# death screen
-# add wall jump (perchance)
-# add type ins (def function(num:int))
-# add docksins:
-"""
-function's role
-
-Parameters
-----------
-
-
-Methods
--------
-
-"""
-
-
-
 from pygame import mixer
 from random import randint
 from utils import *
 from levels import load_levels, World
 from UI import Menu, Text
 
-SCREEN_WIDTH = 1280  #1600
-SCREEN_HEIGHT = 960  #900
-TILE_SIZE = 64  #50
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 960
+TILE_SIZE = 64
 SCROLL_THRESH = SCREEN_WIDTH // 4
 FPS = 60
 INVULNERABILITY_TIME = 0.5
@@ -121,9 +102,8 @@ class Game:
     '''
 
     def __init__(self):
-        # general setup
         self.setting_up()
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT)) # , pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont("Arial", 20)
         self.menu = Menu(self)
@@ -177,7 +157,6 @@ class Game:
                 self.menu.inventory_menu()
             else:
                 self.draw()
-                # if self.world != None:
                 if self.world != None:
                     self.update(keys)
 
@@ -248,7 +227,6 @@ class Game:
             rect.centerx = self.bg.get_size()[0] // 2
             rect.centery = self.bg.get_size()[1] // 2
             self.screen.blit(self.bg, rect)
-        # pygame.draw.rect(self.screen, (255, 255, 255), self.vandi.rect)
 
         if self.level_count != self.level_count_check:
             self.level_count_check = self.level_count
@@ -266,8 +244,6 @@ class Game:
             for shark in self.world.enemies:
                 shark.rect.x += self.screen_scroll
                 if shark.name=='goblin':
-                    # surf=pygame.Surface((64,128), pygame.SRCALPHA)
-                    # surf.fill((255,255,255))
                     self.screen.blit(shark.image, shark.rect)
             self.world.enemies.draw(self.screen)
 
@@ -284,11 +260,6 @@ class Game:
             self.screen.blit(self.vandi.img, self.vandi.img_rect)
 
             self.draw_text(f'Health: {self.vandi.health}', (100, 20))
-
-    # def draw_grid(self):
-    #     for line in range(0, 80):
-    #         pygame.draw.line(self.screen, (255, 255, 255), (0, line * TILE_SIZE), (SCREEN_WIDTH, line * TILE_SIZE))
-    #         pygame.draw.line(self.screen, (255, 255, 255), (line * TILE_SIZE, 0), (line * TILE_SIZE, SCREEN_HEIGHT))
 
     def draw_text(self, text, coordinates, screen=None):
         if screen==None:
@@ -424,8 +395,6 @@ class Player:
         self.wall_collided = False
         self.air_jumps = 1
 
-        # change the image_size and scale
-
         self.image_size = [64, 52]
         self.walking_sprites = SpriteSheet(pygame.image.load('assets/vandi/walk.png').convert_alpha())
         self.animation_steps = 9
@@ -440,13 +409,11 @@ class Player:
         self.img = self.images_right[self.index]
         self.width = self.img.get_width()//2.5
         self.height = self.img.get_height()
-        # self.rect = self.img.get_rect(center=(x, y))
         self.rect = pygame.Rect(0, 0, self.width, self.height)
         self.rect.center = (x, y)
 
         self.img_rect = self.img.get_rect()
         self.img_rect.center = self.rect.center
-        # self.rect = pygame.Rect(x, y, self.width // 4, self.height)
 
         self.on_ground = False
         self.velocity = [0, 0]
@@ -554,7 +521,7 @@ class Player:
             self.attackHitbox.hit_collision()
 
     def fireball(self):
-        projectile = Projectile('new_assets/fireball.png', self)
+        projectile = Projectile('assets/attack/fireball.png', self)
         self.projectiles.append(projectile)
         self.game.attack_channel.play(pygame.mixer.Sound('assets/audio/fireball.mp3'))
 
@@ -600,9 +567,8 @@ class Player:
                 collided = True
 
             # check for end of level
-            if 'finish' in tile.material and collided:
+            if 'portal' in tile.material and collided:
                 self.game.level_count += 1
-                print('load next level')
 
     def check_dead(self):
         dead = False
@@ -692,7 +658,6 @@ class AttackHitbox():
             if not enemy.invulnerable and rect_collision(enemy.rect, self.rect):
                 enemy.health -= self.attacker.game.menu.inventory.weapon.damage
                 enemy.invulnerable = True
-                print(enemy.health)
                 if enemy.check_dead():
                     self.attacker.game.world.enemies.remove(enemy)
 
@@ -724,14 +689,13 @@ class AttackHitbox():
             self.rect.right = self.attacker.rect.left
             self.rect.y = self.attacker.rect.top
 
+
 class Projectile():
     def __init__(self, spritesheet, attacker):
         self.images_right = []
         self.images_left = []
         self.index = 0
         self.counter = 0
-
-        # change the image_size and scale
 
         self.image_size = [34, 17]
         self.spritesheet = SpriteSheet(pygame.image.load(spritesheet).convert_alpha())
@@ -797,7 +761,6 @@ class Projectile():
             if not enemy.invulnerable and rect_collision(enemy.rect, self.rect):
                 enemy.health -= 1
                 enemy.invulnerable = True
-                print(enemy.health)
                 if enemy.check_dead():
                     self.attacker.game.world.enemies.remove(enemy)
                 self.attacker.projectiles.remove(self)

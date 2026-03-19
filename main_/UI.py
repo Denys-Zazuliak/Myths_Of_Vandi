@@ -3,9 +3,9 @@ import time
 from inventory import Inventory, Item
 from utils import *
 
-SCREEN_WIDTH = 1280  #1600
-SCREEN_HEIGHT = 960  #900
-TILE_SIZE = 64  #50
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 960
+TILE_SIZE = 64
 FPS = 60
 
 class Text:
@@ -48,12 +48,6 @@ class Text:
         self.text = self.font.render(text, True, colour)
         self.coordinates = coordinates
         self.text_rect = self.text.get_rect(center=self.coordinates)
-
-    # def draw(self, surface):
-    #     temp_surface = pygame.Surface(self.text.get_size())
-    #     temp_surface.fill((192, 192, 192))
-    #     temp_surface.blit(self.text, self.text_rect)
-    #     surface.blit(temp_surface, (0, 0))
 
     def draw(self, surface):
         if self.lines != None:
@@ -235,8 +229,8 @@ class Menu:
         self.last_update = 0
 
         self.inventory = Inventory(27)
-        self.inventory.add(Item('spear', 'assets/items/spear.png', 5))
 
+        self.tooltip_text = Text('', 50, (0, 0), (255, 255, 255))
         self.tooltip_surf = pygame.Surface((500, 200), pygame.SRCALPHA).convert_alpha()
         self.tooltip_rect = self.tooltip_surf.get_rect()
         self.tooltip_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
@@ -247,11 +241,8 @@ class Menu:
 
         else:
             self.buttons = [self.start, self.settings, self.load, self.exit]
-            # title = Text('The Myths Of Vandi', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
             self.game.screen.blit(self.start_bg, self.start_bg_rect)
-            # self.game.screen.fill((0, 0, 0))
-            # title.draw(self.game.screen)
             for button in self.buttons:
                 button.collision = True
                 button.draw_and_collision(self.game.screen)
@@ -280,7 +271,6 @@ class Menu:
         paused = Text('Paused', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
         self.game.screen.blit(self.pause_bg, self.pause_bg_rect)
-        # self.game.screen.fill((0, 0, 0))
         paused.draw(self.game.screen)
         for button in self.buttons:
             button.collision = True
@@ -319,11 +309,12 @@ class Menu:
         self.buttons = [self.resume, self.sounds_plus, self.sounds_minus]
         settings = Text('Settings', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
         volume = Text(f'Volume: {int(self.game.volume * 100)}', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 125))
+        controls = Text('A - move left \nD - move right \nSPACE - jump \nESC - pause \nI - open inventory \nLEFT MOUSE BUTTON - melee attack \nRIGHT MOUSE BUTTON - fireball \n \nIn the inventory: \n \nLEFT MOUSE BUTTON - equip \nRIGHT MOUSE BUTTON - drop \nI - close inventory', 20, (SCREEN_WIDTH // 2 - 450, SCREEN_HEIGHT // 2))
 
         self.game.screen.blit(self.pause_bg, self.pause_bg_rect)
-        # self.game.screen.fill((0, 0, 0))
         settings.draw(self.game.screen)
         volume.draw(self.game.screen)
+        controls.draw(self.game.screen)
         for button in self.buttons:
             button.collision = True
             button.draw_and_collision(self.game.screen)
@@ -353,11 +344,8 @@ class Menu:
 
     def death_screen(self):
         self.buttons = [self.settings, self.load, self.exit]
-        # title = Text('Failure', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 400))
 
         self.game.screen.blit(self.death_bg, self.death_bg_rect)
-        # self.game.screen.fill((0, 0, 0))
-        # title.draw(self.game.screen)
         for button in self.buttons:
             button.collision = True
             button.draw_and_collision(self.game.screen)
@@ -400,12 +388,10 @@ class Menu:
 
                 if point_collision(mouse_pos, item.rect) and pygame.mouse.get_pressed()[2]:
                     self.inventory.drop(item)
-                if point_collision(mouse_pos, item.rect):
+                    self.tooltip_flag = False
+                elif point_collision(mouse_pos, item.rect):
                     self.tooltip_flag = True
-                    self.tooltip_text = Text(item.details(), 50, ((
-                    SCREEN_WIDTH // 2 - self.tooltip_rect.center[0], SCREEN_HEIGHT // 2 - self.tooltip_rect.center[1])),
-                                             (255, 255, 255))
-                    break
+                    self.tooltip_text = Text(item.details(), 50, ((SCREEN_WIDTH // 2 - self.tooltip_rect.center[0], SCREEN_HEIGHT // 2 - self.tooltip_rect.center[1])),(255, 255, 255))
                 else:
                     self.tooltip_flag = False
             count += 1
@@ -416,7 +402,7 @@ class Menu:
             self.game.screen.blit(self.tooltip_surf, self.tooltip_rect)
 
     def ending_screen(self):
-        self.buttons = [self.exit]
+        self.buttons = [self.start, self.exit]
         text = Text('Thank you for playing', 50, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
         self.game.screen.fill((0, 0, 0))
         text.draw(self.game.screen)
@@ -424,6 +410,10 @@ class Menu:
         for button in self.buttons:
             button.collision = True
             button.draw_and_collision(self.game.screen)
+
+        if self.start.active:
+            self.ending_screen_flag = False
+            self.game.level_count = 1
 
         if self.exit.active:
             self.game.running = False
@@ -441,17 +431,22 @@ class Menu:
 
     def loading(self):
         self.game.bg_music_channel.unpause()
+        try:
+            data = read_json('vandi')
 
-        for item in self.inventory.slots:
-            self.inventory.drop(item)
-        data = read_json('vandi')
-        for dict in data['inventory']:
-            self.inventory.add(Item(dict['name'], dict['img_path'], dict['damage']))
-        self.inventory.weapon = Item(data['weapon']['name'], data['weapon']['img_path'], data['weapon']['damage'])
-        self.game.level_count = data['level_count']
-        self.game.level_count_check = 0
+            for item in self.inventory.slots:
+                self.inventory.drop(item)
 
-        if self.game.level_count != self.game.level_count_check:
+            for dict in data['inventory']:
+                self.inventory.add(Item(dict['name'], dict['img_path'], dict['damage']))
+            self.inventory.weapon = Item(data['weapon']['name'], data['weapon']['img_path'], data['weapon']['damage'])
+            self.game.level_count = data['level_count']
+            self.game.level_count_check = 0
+
+            if self.game.level_count != self.game.level_count_check:
+                self.game.level_count_check = self.game.level_count
+                self.game.level_load()
+        except:
             self.game.level_count_check = self.game.level_count
             self.game.level_load()
 

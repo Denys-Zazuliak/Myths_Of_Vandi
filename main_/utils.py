@@ -31,6 +31,7 @@ class SpriteSheet:
 
         return img
 
+
 def rect_collision(rect1, rect2):
     """
         Checks whether two rectangles are colliding.
