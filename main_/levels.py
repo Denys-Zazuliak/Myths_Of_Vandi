@@ -211,19 +211,19 @@ class World:
                 if tile[0]=='S':
                     if tile[1:].isdigit():
                         for i in range(int(tile[1:])):
-                            shark=Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'shark', 2, self.game, 3, 1)
+                            shark=Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count) - 1, 'shark', 2, self.game, 3, 1)
                             self.enemies.add(shark)
 
                     self.tile_count += 1
 
                 if tile[0]=='G':
-                    goblin = Boss(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'goblin', 2, self.game, 5, 2, f'assets/enemy/goblin_walk.png', (35, 37))
+                    goblin = Boss(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count) - 1, 'goblin', 2, self.game, 5, 2, f'assets/enemy/goblin_walk.png', (35, 37))
                     self.enemies.add(goblin)
 
                     self.tile_count += 1
 
                 if tile[0]=='F':
-                    fox = Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count), 'fox', 2, self.game, 2, 1, f'assets/enemy/fox_walk.png', (32,20))
+                    fox = Enemy(TILE_SIZE * self.tile_count, (TILE_SIZE * self.row_count) - 1, 'fox', 2, self.game, 2, 1, f'assets/enemy/fox_walk.png', (32,22))
                     self.enemies.add(fox)
 
                     self.tile_count += 1
@@ -523,7 +523,7 @@ class Enemy(pygame.sprite.Sprite):
                         self.index = 0
                     self.image = self.images_left[self.index]
 
-            self.rect.x+=self.velocity[0]
+            self.rect.move_ip(self.velocity[0], 0)
         else:
             self.tracking=False
 
@@ -537,12 +537,15 @@ class Enemy(pygame.sprite.Sprite):
         self.game.vandi.invulnerability_update()
 
     def collision(self, world):
+        on_ground = False
         for tile in world.tile_list:
             # vertical collision
             gravity_rect = pygame.Rect((self.rect.x, self.rect.y + self.velocity[1]), (self.rect.width, self.rect.height))
             if rect_collision(tile.img_rect, gravity_rect):
-                if self.velocity[1] > 0:
-                    self.velocity[1] = tile.img_rect.top - self.rect.bottom - 1
+                if self.velocity[1] >= 0:
+                    if tile.img_rect.top >= self.rect.centery:
+                        self.velocity[1] = tile.img_rect.top - self.rect.bottom - 1
+                        on_ground = True
 
             # horizontal collision
             walking_rect = pygame.Rect(self.rect.x + self.velocity[0], self.rect.y, self.rect.width, self.rect.height)
@@ -550,7 +553,11 @@ class Enemy(pygame.sprite.Sprite):
                 self.velocity[0] *= -1
 
         self.rect.move_ip(self.velocity)
-        self.velocity[1] += self.game.gravity
+
+        if not on_ground:
+            self.velocity[1] += self.game.gravity
+        else:
+            self.velocity[1] = 0
 
 
 class Boss(Enemy):

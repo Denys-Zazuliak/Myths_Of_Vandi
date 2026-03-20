@@ -392,8 +392,6 @@ class Menu:
                 elif point_collision(mouse_pos, item.rect):
                     self.tooltip_flag = True
                     self.tooltip_text = Text(item.details(), 50, ((SCREEN_WIDTH // 2 - self.tooltip_rect.center[0], SCREEN_HEIGHT // 2 - self.tooltip_rect.center[1])),(255, 255, 255))
-                else:
-                    self.tooltip_flag = False
             count += 1
 
         if self.tooltip_flag:

@@ -1,5 +1,4 @@
 #AMONGUS
-from pygame import mixer
 from random import randint
 from utils import *
 from levels import load_levels, World
@@ -129,7 +128,7 @@ class Game:
     @staticmethod
     def setting_up():
         pygame.init()
-        mixer.init()
+        pygame.mixer.init()
         pygame.display.set_caption('Myths Of Vandi')
 
     def start_screen(self):
